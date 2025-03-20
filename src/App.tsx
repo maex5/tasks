@@ -52,9 +52,9 @@ const defaultState: AppState = {
     brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙' },
   },
   children: {
-    alex: { id: 'alex', name: 'Alex', completedTasks: [], backgroundColor: '#FFE5E5' },
-    cecci: { id: 'cecci', name: 'Cecci', completedTasks: [], backgroundColor: '#E5FFE5' },
-    vicka: { id: 'vicka', name: 'Vicka', completedTasks: [], backgroundColor: '#E5E5FF' },
+    alex: { id: 'alex', name: 'Alex', completedTasks: [], backgroundColor: '#FFE5F5' }, // Pink-ish
+    cecci: { id: 'cecci', name: 'Cecci', completedTasks: [], backgroundColor: '#E5FFF0' }, // Mint
+    vicka: { id: 'vicka', name: 'Vicka', completedTasks: [], backgroundColor: '#E5E5FF' }, // Light blue
   },
 };
 
@@ -72,6 +72,7 @@ function App() {
   // Initialize Firebase connection
   useEffect(() => {
     const stateRef = ref(database, 'state');
+    let isMounted = true;
     
     // First check if data exists
     get(stateRef).then((snapshot) => {
@@ -84,12 +85,15 @@ function App() {
     // Then set up the listener for changes
     const unsubscribe = onValue(stateRef, (snapshot) => {
       const data = snapshot.val();
-      if (data) {
+      if (data && isMounted) {
         setState(data);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Don't render the app until we have the initial state
@@ -122,6 +126,8 @@ function App() {
 
   // Reset tasks at midnight
   useEffect(() => {
+    if (!state) return; // Don't run if state is null
+
     const checkAndResetTasks = () => {
       const now = new Date();
       const lastReset = localStorage.getItem('last-reset');
@@ -129,7 +135,9 @@ function App() {
       if (!lastReset || new Date(lastReset).getDate() !== now.getDate()) {
         const stateRef = ref(database, 'state');
         get(stateRef).then((snapshot) => {
-          const currentState = (snapshot.val() || state) as AppState;
+          const currentState = snapshot.val() as AppState;
+          if (!currentState) return;
+          
           set(stateRef, {
             ...currentState,
             children: Object.fromEntries(
