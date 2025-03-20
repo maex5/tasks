@@ -81,23 +81,18 @@ function App() {
   // Initialize Firebase connection
   useEffect(() => {
     const stateRef = ref(database, 'state');
+    let isInitialDataLoaded = false;
     
     // Listen for changes
     const unsubscribe = onValue(stateRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setState(data);
-      }
-    });
-
-    // Initial load
-    get(stateRef).then((snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setState(data);
-      } else {
-        // Set initial state if no data exists
+        isInitialDataLoaded = true;
+      } else if (!isInitialDataLoaded) {
+        // Only set default state if there's no data and we haven't loaded data before
         set(stateRef, defaultState);
+        isInitialDataLoaded = true;
       }
     });
 
@@ -112,16 +107,19 @@ function App() {
       
       if (!lastReset || new Date(lastReset).getDate() !== now.getDate()) {
         const stateRef = ref(database, 'state');
-        set(stateRef, {
-          ...state,
-          children: Object.fromEntries(
-            Object.entries(state.children).map(([id, child]) => [
-              id,
-              { ...child, completedTasks: [] }
-            ])
-          )
+        get(stateRef).then((snapshot) => {
+          const currentState = (snapshot.val() || state) as AppState;
+          set(stateRef, {
+            ...currentState,
+            children: Object.fromEntries(
+              Object.entries(currentState.children).map(([id, child]) => [
+                id,
+                { ...child, completedTasks: [] }
+              ])
+            )
+          });
+          localStorage.setItem('last-reset', now.toISOString());
         });
-        localStorage.setItem('last-reset', now.toISOString());
       }
     };
 
