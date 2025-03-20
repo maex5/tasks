@@ -8,8 +8,6 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { database } from './firebase';
 import { ref, onValue, set, get } from 'firebase/database';
 
-console.log('App component is being rendered');
-
 const theme = createTheme({
   palette: {
     mode: 'light',
@@ -25,7 +23,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Comic Sans MS", cursive, sans-serif',
+    fontFamily: '"Nunito", sans-serif',
     h4: {
       fontWeight: 700,
       color: '#FF4444',
@@ -44,13 +42,7 @@ const theme = createTheme({
 });
 
 const STORAGE_KEY = 'kids-tasks-state';
-
-// Temporary function to clear state - remove after use
-const clearState = () => {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem('last-reset');
-  window.location.reload();
-};
+const CURRENT_CHILD_KEY = 'current-child';
 
 const defaultState: AppState = {
   tasks: {
@@ -68,14 +60,27 @@ const defaultState: AppState = {
 };
 
 function App() {
-  console.log('App function is being called');
   const [state, setState] = useState<AppState>(defaultState);
-  const [currentChildIndex, setCurrentChildIndex] = useState(0);
+  const [currentChildIndex, setCurrentChildIndex] = useState(() => {
+    const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
+    if (savedChildId) {
+      const index = Object.values(defaultState.children).findIndex(child => child.id === savedChildId);
+      return index >= 0 ? index : 0;
+    }
+    return 0;
+  });
   const children = Object.values(state.children);
+
+  // Save current child to localStorage when it changes
+  useEffect(() => {
+    const currentChild = children[currentChildIndex];
+    if (currentChild) {
+      localStorage.setItem(CURRENT_CHILD_KEY, currentChild.id);
+    }
+  }, [currentChildIndex, children]);
 
   // Initialize Firebase connection
   useEffect(() => {
-    console.log('Setting up Firebase connection');
     const stateRef = ref(database, 'state');
     
     // Listen for changes
@@ -102,7 +107,6 @@ function App() {
 
   // Reset tasks at midnight
   useEffect(() => {
-    console.log('Setting up midnight reset');
     const checkAndResetTasks = () => {
       const now = new Date();
       const lastReset = localStorage.getItem('last-reset');
@@ -128,7 +132,6 @@ function App() {
   }, [state]);
 
   const handleTaskToggle = (childId: string, taskId: string) => {
-    console.log('Toggling task:', { childId, taskId });
     const stateRef = ref(database, 'state');
     const child = state.children[childId];
     const completedTasks = (child.completedTasks || []).includes(taskId)
@@ -166,8 +169,6 @@ function App() {
   const handlePrevChild = () => {
     setCurrentChildIndex((prev) => (prev - 1 + children.length) % children.length);
   };
-
-  console.log('Rendering App with state:', state);
 
   const currentChild = children[currentChildIndex];
 
@@ -207,18 +208,6 @@ function App() {
               <ArrowBackIcon />
             </IconButton>
             <Box sx={{ flex: 1 }} />
-            {/* Temporary reset button - remove after use */}
-            <IconButton 
-              onClick={clearState} 
-              size="large" 
-              sx={{ 
-                color: 'error.main',
-                mr: 1,
-                '&:hover': { backgroundColor: 'error.light' }
-              }}
-            >
-              🔄
-            </IconButton>
             <IconButton onClick={handleNextChild} size="large" sx={{ color: 'primary.main' }}>
               <ArrowForwardIcon />
             </IconButton>

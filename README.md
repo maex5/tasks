@@ -4,13 +4,27 @@ A playful task tracking app for kids, built with React, TypeScript, and PWA tech
 
 ## Features
 
-- 🎨 Playful and colorful design
+- 🎨 Playful and colorful design with Nunito font
 - 👶 Multiple child profiles
 - 📱 Mobile-first PWA
-- 🔄 Offline support
+- 🔄 Offline support with Firebase sync
 - 🌙 Automatic daily reset
 - 🎯 Task completion tracking
 - 😊 Emoji progress indicators
+- 🎉 Celebration confetti on task completion
+- 🔄 Real-time sync across devices with Firebase
+- 🎨 Unique background colors for each child
+- 🔊 Sound effects on task completion
+
+## Recent Updates
+
+- Added Firebase integration for real-time data sync
+- Implemented confetti celebration when all tasks are completed
+- Updated to Nunito font for better readability
+- Added sound effects for task completion
+- Improved UI with smooth animations
+- Added unique background colors for each child
+- Implemented automatic task reset at midnight
 
 ## Emoji States
 
