@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Container, IconButton } from '@mui/material';
+import { CssBaseline, Box, Container, IconButton, CircularProgress } from '@mui/material';
 import { AppState } from './types';
 import ChildPage from './components/ChildPage';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -59,7 +59,7 @@ const defaultState: AppState = {
 };
 
 function App() {
-  const [state, setState] = useState<AppState>(defaultState);
+  const [state, setState] = useState<AppState | null>(null);
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
     const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
     if (savedChildId) {
@@ -68,15 +68,6 @@ function App() {
     }
     return 0;
   });
-  const children = Object.values(state.children);
-
-  // Save current child to localStorage when it changes
-  useEffect(() => {
-    const currentChild = children[currentChildIndex];
-    if (currentChild) {
-      localStorage.setItem(CURRENT_CHILD_KEY, currentChild.id);
-    }
-  }, [currentChildIndex, children]);
 
   // Initialize Firebase connection
   useEffect(() => {
@@ -100,6 +91,34 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Don't render the app until we have the initial state
+  if (!state) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          bgcolor: '#F7F7F7'
+        }}>
+          <CircularProgress />
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  const children = Object.values(state.children);
+
+  // Save current child to localStorage when it changes
+  useEffect(() => {
+    const currentChild = children[currentChildIndex];
+    if (currentChild) {
+      localStorage.setItem(CURRENT_CHILD_KEY, currentChild.id);
+    }
+  }, [currentChildIndex, children]);
 
   // Reset tasks at midnight
   useEffect(() => {
