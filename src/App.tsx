@@ -96,37 +96,19 @@ function App() {
     };
   }, []);
 
-  // Don't render the app until we have the initial state
-  if (!state) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          bgcolor: '#F7F7F7'
-        }}>
-          <CircularProgress />
-        </Box>
-      </ThemeProvider>
-    );
-  }
-
-  const children = Object.values(state.children);
-
   // Save current child to localStorage when it changes
   useEffect(() => {
+    if (!state) return;
+    const children = Object.values(state.children);
     const currentChild = children[currentChildIndex];
     if (currentChild) {
       localStorage.setItem(CURRENT_CHILD_KEY, currentChild.id);
     }
-  }, [currentChildIndex, children]);
+  }, [currentChildIndex, state]);
 
   // Reset tasks at midnight
   useEffect(() => {
-    if (!state) return; // Don't run if state is null
+    if (!state) return;
 
     const checkAndResetTasks = () => {
       const now = new Date();
@@ -156,6 +138,27 @@ function App() {
     const interval = setInterval(checkAndResetTasks, 60000); // Check every minute
     return () => clearInterval(interval);
   }, [state]);
+
+  // Don't render the app until we have the initial state
+  if (!state) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          bgcolor: '#F7F7F7'
+        }}>
+          <CircularProgress />
+        </Box>
+      </ThemeProvider>
+    );
+  }
+
+  const children = Object.values(state.children);
+  const currentChild = children[currentChildIndex];
 
   const handleTaskToggle = (childId: string, taskId: string) => {
     const stateRef = ref(database, 'state');
@@ -195,8 +198,6 @@ function App() {
   const handlePrevChild = () => {
     setCurrentChildIndex((prev) => (prev - 1 + children.length) % children.length);
   };
-
-  const currentChild = children[currentChildIndex];
 
   return (
     <ThemeProvider theme={theme}>
