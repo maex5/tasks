@@ -3,7 +3,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box, Container, IconButton, CircularProgress, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { AppState } from './types';
 import ChildPage from './components/ChildPage';
 import { useFirebaseState } from './hooks/useFirebaseState';
 import { useTaskReset } from './hooks/useTaskReset';
