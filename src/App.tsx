@@ -92,7 +92,6 @@ const defaultState: AppState = {
 
 function App() {
   const [state, setState] = useState<AppState | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
     const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
     if (savedChildId) {
@@ -104,33 +103,45 @@ function App() {
 
   // Initialize Firebase connection
   useEffect(() => {
-    const stateRef = ref(database, 'state');
     let isMounted = true;
+    const stateRef = ref(database, 'state');
 
-    // First, try to get existing data
-    get(stateRef).then((snapshot) => {
-      if (!isMounted) return;
+    const initializeState = async () => {
+      try {
+        // Get initial data
+        const snapshot = await get(stateRef);
+        
+        if (!isMounted) return;
 
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setState(data);
-      } else {
-        // Only set default state if there's no data
-        set(stateRef, defaultState).then(() => {
-          if (isMounted) {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data?.children && data?.taskSets) {
+            setState(data);
+          } else {
+            // If data is incomplete, set default state
+            await set(stateRef, defaultState);
             setState(defaultState);
           }
-        });
+        } else {
+          // No data exists, set default state
+          await set(stateRef, defaultState);
+          setState(defaultState);
+        }
+      } catch (error) {
+        console.error('Error initializing state:', error);
+        setState(defaultState); // Fallback to default state on error
       }
-      setIsInitialized(true);
-    });
-    
-    // Then set up the listener for future updates
+    };
+
+    // Initialize state
+    initializeState();
+
+    // Set up listener for future changes
     const unsubscribe = onValue(stateRef, (snapshot) => {
-      if (!isMounted || !isInitialized) return;
+      if (!isMounted) return;
       
       const data = snapshot.val();
-      if (data) {
+      if (data?.children && data?.taskSets) {
         setState(data);
       }
     });
@@ -139,11 +150,11 @@ function App() {
       isMounted = false;
       unsubscribe();
     };
-  }, [isInitialized]);
+  }, []);
 
   // Save current child to localStorage when it changes
   useEffect(() => {
-    if (!state) return;
+    if (!state?.children) return;
     const children = Object.values(state.children);
     const currentChild = children[currentChildIndex];
     if (currentChild) {
@@ -153,19 +164,20 @@ function App() {
 
   // Reset tasks at midnight
   useEffect(() => {
-    if (!state) return;
+    if (!state?.children) return;
 
-    const checkAndResetTasks = () => {
+    const checkAndResetTasks = async () => {
       const now = new Date();
       const lastReset = localStorage.getItem('last-reset');
       
       if (!lastReset || new Date(lastReset).getDate() !== now.getDate()) {
         const stateRef = ref(database, 'state');
-        get(stateRef).then((snapshot) => {
+        try {
+          const snapshot = await get(stateRef);
           const currentState = snapshot.val() as AppState;
-          if (!currentState) return;
+          if (!currentState?.children) return;
           
-          set(stateRef, {
+          await set(stateRef, {
             ...currentState,
             children: Object.fromEntries(
               Object.entries(currentState.children).map(([id, child]) => [
@@ -175,7 +187,9 @@ function App() {
             )
           });
           localStorage.setItem('last-reset', now.toISOString());
-        });
+        } catch (error) {
+          console.error('Error resetting tasks:', error);
+        }
       }
     };
 
@@ -185,7 +199,7 @@ function App() {
   }, [state]);
 
   // Don't render the app until we have the initial state
-  if (!state || !isInitialized) {
+  if (!state?.children || !state?.taskSets) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -204,11 +218,28 @@ function App() {
 
   const children = Object.values(state.children);
   const currentChild = children[currentChildIndex];
+  
+  // Safety check for currentChild
+  if (!currentChild) {
+    setCurrentChildIndex(0);
+    return null;
+  }
+
   const currentTaskSet = state.taskSets[currentChild.taskSetId];
+  
+  // Safety check for currentTaskSet
+  if (!currentTaskSet?.tasks) {
+    console.error('Task set not found:', currentChild.taskSetId);
+    return null;
+  }
 
   const handleTaskToggle = (childId: string, taskId: string) => {
+    if (!state) return;
+    
     const stateRef = ref(database, 'state');
     const child = state.children[childId];
+    if (!child) return;
+
     const completedTasks = (child.completedTasks || []).includes(taskId)
       ? (child.completedTasks || []).filter(id => id !== taskId)
       : [...(child.completedTasks || []), taskId];
