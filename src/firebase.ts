@@ -6,10 +6,10 @@ import { getDatabase } from 'firebase/database';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBU22Sr-HjEJj89wFoeVDY8IAfzAw2R7V8",
-  authDomain: "tasks-34654.firebaseapp.com",
-  databaseURL: "https://tasks-34654-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "tasks-34654",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: "tasks-34654.firebasestorage.app",
   messagingSenderId: "222183554116",
   appId: "1:222183554116:web:42ae8e8f1d224ce8475011"
