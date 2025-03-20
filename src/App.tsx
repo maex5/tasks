@@ -45,27 +45,23 @@ const CURRENT_CHILD_KEY = 'current-child';
 
 const defaultState: AppState = {
   taskSets: {
-    morning_routine: {
-      id: 'morning_routine',
-      name: 'Morning Routine',
+    all_tasks: {
+      id: 'all_tasks',
+      name: 'All Tasks',
       tasks: {
         make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
         brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
+        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
+        take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
+        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 5 },
       }
     },
-    day_tasks: {
-      id: 'day_tasks',
-      name: 'Day Tasks',
+    basic_tasks: {
+      id: 'basic_tasks',
+      name: 'Basic Tasks',
       tasks: {
-        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 1 },
-        take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 2 },
-      }
-    },
-    evening_routine: {
-      id: 'evening_routine',
-      name: 'Evening Routine',
-      tasks: {
-        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 1 },
+        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 1 },
+        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 2 },
       }
     }
   },
@@ -73,21 +69,21 @@ const defaultState: AppState = {
     alex: { 
       id: 'alex', 
       name: 'Alex', 
-      taskSetId: 'morning_routine',
+      taskSetId: 'all_tasks',
       completedTasks: [], 
       backgroundColor: '#FFE5F5' 
     },
     cecci: { 
       id: 'cecci', 
       name: 'Cecci',
-      taskSetId: 'day_tasks', 
+      taskSetId: 'basic_tasks', 
       completedTasks: [], 
       backgroundColor: '#E5FFF0' 
     },
     vicka: { 
       id: 'vicka', 
       name: 'Vicka',
-      taskSetId: 'evening_routine', 
+      taskSetId: 'all_tasks', 
       completedTasks: [], 
       backgroundColor: '#E5E5FF' 
     },
@@ -96,6 +92,7 @@ const defaultState: AppState = {
 
 function App() {
   const [state, setState] = useState<AppState | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
     const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
     if (savedChildId) {
@@ -109,27 +106,32 @@ function App() {
   useEffect(() => {
     const stateRef = ref(database, 'state');
     let isMounted = true;
-    
-    // Set up the listener first to ensure we don't miss any updates
-    const unsubscribe = onValue(stateRef, (snapshot) => {
+
+    // First, try to get existing data
+    get(stateRef).then((snapshot) => {
       if (!isMounted) return;
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setState(data);
+      } else {
+        // Only set default state if there's no data
+        set(stateRef, defaultState).then(() => {
+          if (isMounted) {
+            setState(defaultState);
+          }
+        });
+      }
+      setIsInitialized(true);
+    });
+    
+    // Then set up the listener for future updates
+    const unsubscribe = onValue(stateRef, (snapshot) => {
+      if (!isMounted || !isInitialized) return;
       
       const data = snapshot.val();
       if (data) {
-        // If we have data, always use it
         setState(data);
-      } else {
-        // Only set default state if we're the first connection and there's no data
-        get(stateRef).then((checkSnapshot) => {
-          if (!isMounted) return;
-          if (!checkSnapshot.exists()) {
-            set(stateRef, defaultState).then(() => {
-              if (isMounted) {
-                setState(defaultState);
-              }
-            });
-          }
-        });
       }
     });
 
@@ -137,7 +139,7 @@ function App() {
       isMounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [isInitialized]);
 
   // Save current child to localStorage when it changes
   useEffect(() => {
@@ -183,7 +185,7 @@ function App() {
   }, [state]);
 
   // Don't render the app until we have the initial state
-  if (!state) {
+  if (!state || !isInitialized) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -202,6 +204,7 @@ function App() {
 
   const children = Object.values(state.children);
   const currentChild = children[currentChildIndex];
+  const currentTaskSet = state.taskSets[currentChild.taskSetId];
 
   const handleTaskToggle = (childId: string, taskId: string) => {
     const stateRef = ref(database, 'state');
@@ -223,7 +226,6 @@ function App() {
   };
 
   // Sort tasks in chronological order
-  const currentTaskSet = state.taskSets[currentChild.taskSetId];
   const sortedTasks = Object.values(currentTaskSet.tasks).sort((a, b) => a.order - b.order);
 
   const handleNextChild = () => {
