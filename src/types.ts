@@ -33,4 +33,4 @@ export interface EmojiProgressProps {
   totalTasks: number;
 }
 
-export type EmojiState = '😴' | '😊' | '😄' | '😃' | '🤩';
+export type EmojiState = '😭' | '😢' | '😐' | '🙂' | '😃' | '🤩';
