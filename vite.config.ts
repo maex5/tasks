@@ -14,33 +14,18 @@ export default defineConfig({
         theme_color: '#ffffff',
         icons: [
           {
-            src: '/tasks/pwa-192x192.png',
+            src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/tasks/pwa-512x512.png',
+            src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
         ]
-      },
-      workbox: {
-        cleanupOutdatedCaches: true,
-        sourcemap: true
       }
     })
   ],
-  base: '/tasks/',
-  build: {
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', '@mui/material', 'framer-motion'],
-          'firebase': ['firebase/app', 'firebase/database']
-        }
-      }
-    }
-  }
+  base: '/tasks/' // This is for GitHub Pages
 }) 
