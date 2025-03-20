@@ -81,18 +81,20 @@ function App() {
   // Initialize Firebase connection
   useEffect(() => {
     const stateRef = ref(database, 'state');
-    let isInitialDataLoaded = false;
     
-    // Listen for changes
+    // First check if data exists
+    get(stateRef).then((snapshot) => {
+      if (!snapshot.exists()) {
+        // Only set default state if no data exists at all
+        set(stateRef, defaultState);
+      }
+    });
+
+    // Then set up the listener for changes
     const unsubscribe = onValue(stateRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setState(data);
-        isInitialDataLoaded = true;
-      } else if (!isInitialDataLoaded) {
-        // Only set default state if there's no data and we haven't loaded data before
-        set(stateRef, defaultState);
-        isInitialDataLoaded = true;
       }
     });
 
