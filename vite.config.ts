@@ -1,40 +1,46 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: 'Kids Tasks',
-        short_name: 'Kids Tasks',
-        description: 'Track your kids daily tasks with emoji progression',
-        theme_color: '#ffffff',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  return {
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        manifest: {
+          name: 'Kids Tasks',
+          short_name: 'Kids Tasks',
+          description: 'Track your kids daily tasks with emoji progression',
+          theme_color: '#ffffff',
+          icons: [
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            }
+          ]
+        }
+      })
+    ],
+    base: '/tasks/', // This is for GitHub Pages
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: `assets/[name].[hash].js`,
+          chunkFileNames: `assets/[name].[hash].js`,
+          assetFileNames: `assets/[name].[hash].[ext]`
+        }
       }
-    })
-  ],
-  base: '/tasks/', // This is for GitHub Pages
-  build: {
-    rollupOptions: {
-      output: {
-        entryFileNames: `assets/[name].[hash].js`,
-        chunkFileNames: `assets/[name].[hash].js`,
-        assetFileNames: `assets/[name].[hash].[ext]`
-      }
+    },
+    define: {
+      'process.env': env
     }
   }
 }) 
