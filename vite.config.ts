@@ -41,10 +41,17 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),
-      'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN),
-      'import.meta.env.VITE_FIREBASE_DATABASE_URL': JSON.stringify(env.VITE_FIREBASE_DATABASE_URL),
-      'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID)
+      __VUE_PROD_DEVTOOLS__: false,
+      'import.meta.env': JSON.stringify({
+        VITE_FIREBASE_API_KEY: env.VITE_FIREBASE_API_KEY,
+        VITE_FIREBASE_AUTH_DOMAIN: env.VITE_FIREBASE_AUTH_DOMAIN,
+        VITE_FIREBASE_DATABASE_URL: env.VITE_FIREBASE_DATABASE_URL,
+        VITE_FIREBASE_PROJECT_ID: env.VITE_FIREBASE_PROJECT_ID,
+        MODE: env.MODE,
+        DEV: mode === 'development',
+        PROD: mode === 'production',
+        SSR: false
+      })
     }
   }
 }) 

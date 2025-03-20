@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { getDatabase, Database } from 'firebase/database';
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -18,10 +18,20 @@ const firebaseConfig = {
 // Debug logging
 console.log('Firebase Config:', {
   ...firebaseConfig,
-  apiKey: firebaseConfig.apiKey ? '[HIDDEN]' : undefined,
-  databaseURL: firebaseConfig.databaseURL || 'NOT_SET'
+  apiKey: '[HIDDEN]',
+  databaseURL: firebaseConfig.databaseURL
 });
 
+let database: Database;
+
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const database = getDatabase(app);
+try {
+  const app = initializeApp(firebaseConfig);
+  database = getDatabase(app);
+  console.log('Firebase Database initialized successfully');
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
+  throw error;
+}
+
+export { database };
