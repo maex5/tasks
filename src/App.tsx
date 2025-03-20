@@ -74,19 +74,26 @@ function App() {
     const stateRef = ref(database, 'state');
     let isMounted = true;
     
-    // First check if data exists
-    get(stateRef).then((snapshot) => {
-      if (!snapshot.exists()) {
-        // Only set default state if no data exists at all
-        set(stateRef, defaultState);
-      }
-    });
-
-    // Then set up the listener for changes
+    // Set up the listener first to ensure we don't miss any updates
     const unsubscribe = onValue(stateRef, (snapshot) => {
+      if (!isMounted) return;
+      
       const data = snapshot.val();
-      if (data && isMounted) {
+      if (data) {
+        // If we have data, always use it
         setState(data);
+      } else {
+        // Only set default state if we're the first connection and there's no data
+        get(stateRef).then((checkSnapshot) => {
+          if (!isMounted) return;
+          if (!checkSnapshot.exists()) {
+            set(stateRef, defaultState).then(() => {
+              if (isMounted) {
+                setState(defaultState);
+              }
+            });
+          }
+        });
       }
     });
 
