@@ -27,5 +27,14 @@ export default defineConfig({
       }
     })
   ],
-  base: '/tasks/' // This is for GitHub Pages
+  base: '/tasks/', // This is for GitHub Pages
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].[hash].[timestamp].js`,
+        chunkFileNames: `assets/[name].[hash].[timestamp].js`,
+        assetFileNames: `assets/[name].[hash].[timestamp].[ext]`
+      }
+    }
+  }
 }) 
