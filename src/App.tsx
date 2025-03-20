@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, Box, Container, IconButton, CircularProgress } from '@mui/material';
+import { CssBaseline, Box, Container, IconButton, CircularProgress, Alert } from '@mui/material';
 import { AppState } from './types';
 import ChildPage from './components/ChildPage';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { database } from './firebase';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, onValue, set, get, runTransaction, onDisconnect, serverTimestamp, connectDatabaseEmulator } from 'firebase/database';
+
+interface AppStateWithMetadata extends AppState {
+  _metadata?: {
+    lastUpdate: number | null;
+    version: number;
+  };
+}
 
 const theme = createTheme({
   palette: {
@@ -92,6 +99,9 @@ const defaultState: AppState = {
 
 function App() {
   const [state, setState] = useState<AppState | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const initAttempted = useRef(false);
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
     const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
     if (savedChildId) {
@@ -101,56 +111,80 @@ function App() {
     return 0;
   });
 
-  // Initialize Firebase connection
+  // Initialize Firebase connection and handle offline/online status
   useEffect(() => {
-    let isMounted = true;
     const stateRef = ref(database, 'state');
+    const connectedRef = ref(database, '.info/connected');
+    let isMounted = true;
+
+    // Handle connection state
+    const unsubscribeConnection = onValue(connectedRef, (snap) => {
+      if (isMounted) {
+        setIsOnline(!!snap.val());
+      }
+    });
+
+    // Set up offline cleanup
+    onDisconnect(stateRef).cancel();
 
     const initializeState = async () => {
-      try {
-        // Get initial data
-        const snapshot = await get(stateRef);
-        
-        if (!isMounted) return;
+      if (initAttempted.current) return;
+      initAttempted.current = true;
 
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          if (data?.children && data?.taskSets) {
-            setState(data);
-          } else {
-            // If data is incomplete, set default state
-            await set(stateRef, defaultState);
-            setState(defaultState);
+      try {
+        // Use transaction to ensure atomic read/write
+        await runTransaction(stateRef, (currentData: AppStateWithMetadata | null) => {
+          if (!currentData) {
+            return {
+              ...defaultState,
+              _metadata: {
+                lastUpdate: serverTimestamp(),
+                version: 1
+              }
+            };
           }
-        } else {
-          // No data exists, set default state
-          await set(stateRef, defaultState);
-          setState(defaultState);
+          return currentData;
+        });
+
+        // Get the result after transaction
+        const snapshot = await get(stateRef);
+        if (snapshot.exists() && isMounted) {
+          const data = snapshot.val();
+          setState(data);
+          setRetryCount(0); // Reset retry count on success
         }
       } catch (error) {
-        console.error('Error initializing state:', error);
-        setState(defaultState); // Fallback to default state on error
+        console.error('Error in transaction:', error);
+        if (isMounted && retryCount < 3) {
+          // Exponential backoff retry
+          const timeout = Math.pow(2, retryCount) * 1000;
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            initAttempted.current = false; // Allow retry
+          }, timeout);
+        }
       }
     };
 
     // Initialize state
     initializeState();
 
-    // Set up listener for future changes
-    const unsubscribe = onValue(stateRef, (snapshot) => {
+    // Set up listener for future changes with version check
+    const unsubscribeState = onValue(stateRef, (snapshot) => {
       if (!isMounted) return;
       
       const data = snapshot.val();
-      if (data?.children && data?.taskSets) {
+      if (data?._metadata?.version === 1) {
         setState(data);
       }
     });
 
     return () => {
       isMounted = false;
-      unsubscribe();
+      unsubscribeConnection();
+      unsubscribeState();
     };
-  }, []);
+  }, [retryCount]);
 
   // Save current child to localStorage when it changes
   useEffect(() => {
@@ -162,7 +196,7 @@ function App() {
     }
   }, [currentChildIndex, state]);
 
-  // Reset tasks at midnight
+  // Reset tasks at midnight using transaction
   useEffect(() => {
     if (!state?.children) return;
 
@@ -173,18 +207,22 @@ function App() {
       if (!lastReset || new Date(lastReset).getDate() !== now.getDate()) {
         const stateRef = ref(database, 'state');
         try {
-          const snapshot = await get(stateRef);
-          const currentState = snapshot.val() as AppState;
-          if (!currentState?.children) return;
-          
-          await set(stateRef, {
-            ...currentState,
-            children: Object.fromEntries(
-              Object.entries(currentState.children).map(([id, child]) => [
-                id,
-                { ...child, completedTasks: [] }
-              ])
-            )
+          await runTransaction(stateRef, (currentData: AppStateWithMetadata | null) => {
+            if (!currentData) return currentData;
+
+            return {
+              ...currentData,
+              children: Object.fromEntries(
+                Object.entries(currentData.children).map(([id, child]: [string, any]) => [
+                  id,
+                  { ...child, completedTasks: [] }
+                ])
+              ),
+              _metadata: {
+                lastUpdate: serverTimestamp(),
+                version: 1
+              }
+            };
           });
           localStorage.setItem('last-reset', now.toISOString());
         } catch (error) {
@@ -194,37 +232,42 @@ function App() {
     };
 
     checkAndResetTasks();
-    const interval = setInterval(checkAndResetTasks, 60000); // Check every minute
+    const interval = setInterval(checkAndResetTasks, 60000);
     return () => clearInterval(interval);
   }, [state]);
 
-  // Don't render the app until we have the initial state
+  // Show loading or error states
   if (!state?.children || !state?.taskSets) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{ 
-          display: 'flex', 
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
           justifyContent: 'center', 
           alignItems: 'center', 
           minHeight: '100vh',
           bgcolor: '#F7F7F7'
         }}>
           <CircularProgress />
+          {!isOnline && (
+            <Alert severity="warning" sx={{ maxWidth: 400 }}>
+              You're offline. Changes will sync when you're back online.
+            </Alert>
+          )}
+          {retryCount > 0 && (
+            <Alert severity="info" sx={{ maxWidth: 400 }}>
+              Connecting... Attempt {retryCount}/3
+            </Alert>
+          )}
         </Box>
       </ThemeProvider>
     );
   }
 
   const children = Object.values(state.children);
-  const currentChild = children[currentChildIndex];
-  
-  // Safety check for currentChild
-  if (!currentChild) {
-    setCurrentChildIndex(0);
-    return null;
-  }
-
+  const currentChild = children[currentChildIndex] || children[0];
   const currentTaskSet = state.taskSets[currentChild.taskSetId];
   
   // Safety check for currentTaskSet
@@ -233,27 +276,39 @@ function App() {
     return null;
   }
 
-  const handleTaskToggle = (childId: string, taskId: string) => {
+  const handleTaskToggle = async (childId: string, taskId: string) => {
     if (!state) return;
     
     const stateRef = ref(database, 'state');
-    const child = state.children[childId];
-    if (!child) return;
+    try {
+      await runTransaction(stateRef, (currentData: AppStateWithMetadata | null) => {
+        if (!currentData) return currentData;
 
-    const completedTasks = (child.completedTasks || []).includes(taskId)
-      ? (child.completedTasks || []).filter(id => id !== taskId)
-      : [...(child.completedTasks || []), taskId];
+        const child = currentData.children[childId];
+        if (!child) return currentData;
 
-    set(stateRef, {
-      ...state,
-      children: {
-        ...state.children,
-        [childId]: {
-          ...child,
-          completedTasks,
-        },
-      },
-    });
+        const completedTasks = (child.completedTasks || []).includes(taskId)
+          ? (child.completedTasks || []).filter(id => id !== taskId)
+          : [...(child.completedTasks || []), taskId];
+
+        return {
+          ...currentData,
+          children: {
+            ...currentData.children,
+            [childId]: {
+              ...child,
+              completedTasks,
+            },
+          },
+          _metadata: {
+            lastUpdate: serverTimestamp(),
+            version: 1
+          }
+        };
+      });
+    } catch (error) {
+      console.error('Error toggling task:', error);
+    }
   };
 
   // Sort tasks in chronological order
