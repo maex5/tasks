@@ -11,53 +11,6 @@ import { theme } from './theme';
 
 const CURRENT_CHILD_KEY = 'current-child';
 
-const defaultState: AppState = {
-  taskSets: {
-    all_tasks: {
-      id: 'all_tasks',
-      name: 'All Tasks',
-      tasks: {
-        make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
-        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
-        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
-        take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
-        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 5 },
-      }
-    },
-    basic_tasks: {
-      id: 'basic_tasks',
-      name: 'Basic Tasks',
-      tasks: {
-        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 1 },
-        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 2 },
-      }
-    }
-  },
-  children: {
-    alex: { 
-      id: 'alex', 
-      name: 'Alex', 
-      taskSetId: 'all_tasks',
-      completedTasks: [], 
-      backgroundColor: '#FFE5F5' 
-    },
-    cecci: { 
-      id: 'cecci', 
-      name: 'Cecci',
-      taskSetId: 'basic_tasks', 
-      completedTasks: [], 
-      backgroundColor: '#E5FFF0' 
-    },
-    vicka: { 
-      id: 'vicka', 
-      name: 'Vicka',
-      taskSetId: 'all_tasks', 
-      completedTasks: [], 
-      backgroundColor: '#E5E5FF' 
-    },
-  },
-};
-
 function App() {
   const { 
     state, 
@@ -75,7 +28,7 @@ function App() {
     return index >= 0 ? index : 0;
   });
 
-  useTaskReset(state, async (newState) => {
+  useTaskReset(state, async () => {
     if (!state?.children) return;
     const firstChildId = Object.keys(state.children)[0];
     await updateChild(firstChildId, { completedTasks: [] });
