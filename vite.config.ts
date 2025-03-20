@@ -4,6 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const envWithProcessPrefix = Object.entries(env).reduce(
+    (prev, [key, val]) => {
+      return {
+        ...prev,
+        ['import.meta.env.' + key]: JSON.stringify(val),
+      }
+    },
+    {},
+  )
+
   return {
     plugins: [
       react(),
@@ -16,12 +26,12 @@ export default defineConfig(({ mode }) => {
           theme_color: '#ffffff',
           icons: [
             {
-              src: 'pwa-192x192.png',
+              src: '/tasks/pwa-192x192.png',
               sizes: '192x192',
               type: 'image/png'
             },
             {
-              src: 'pwa-512x512.png',
+              src: '/tasks/pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png'
             }
@@ -39,8 +49,6 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    define: {
-      'process.env': env
-    }
+    define: envWithProcessPrefix
   }
 }) 
