@@ -26,5 +26,6 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  base: '/tasks/', // This is for GitHub Pages
 }) 

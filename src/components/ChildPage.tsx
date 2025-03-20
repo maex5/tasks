@@ -46,6 +46,8 @@ const ChildName = styled(Typography)(({ theme }) => ({
 }));
 
 const ChildPage = ({ child, tasks, onTaskToggle }: ChildPageProps) => {
+  const completedTasks = child.completedTasks || [];
+  
   return (
     <PageContainer maxWidth="sm">
       <ChildName variant="h4">
@@ -53,7 +55,7 @@ const ChildPage = ({ child, tasks, onTaskToggle }: ChildPageProps) => {
       </ChildName>
       
       <EmojiProgress
-        completedTasks={child.completedTasks}
+        completedTasks={completedTasks}
         totalTasks={tasks.length}
       />
 
@@ -62,7 +64,7 @@ const ChildPage = ({ child, tasks, onTaskToggle }: ChildPageProps) => {
           <TaskButton
             key={task.id}
             task={task}
-            isCompleted={child.completedTasks.includes(task.id)}
+            isCompleted={completedTasks.includes(task.id)}
             onToggle={(taskId) => onTaskToggle(child.id, taskId)}
           />
         ))}

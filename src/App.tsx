@@ -131,9 +131,9 @@ function App() {
     console.log('Toggling task:', { childId, taskId });
     const stateRef = ref(database, 'state');
     const child = state.children[childId];
-    const completedTasks = child.completedTasks.includes(taskId)
-      ? child.completedTasks.filter(id => id !== taskId)
-      : [...child.completedTasks, taskId];
+    const completedTasks = (child.completedTasks || []).includes(taskId)
+      ? (child.completedTasks || []).filter(id => id !== taskId)
+      : [...(child.completedTasks || []), taskId];
 
     set(stateRef, {
       ...state,
@@ -158,12 +158,6 @@ function App() {
     };
     return order[a.id as keyof typeof order] - order[b.id as keyof typeof order];
   });
-
-  // Save state to localStorage
-  useEffect(() => {
-    console.log('Saving state to localStorage');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
 
   const handleNextChild = () => {
     setCurrentChildIndex((prev) => (prev + 1) % children.length);
