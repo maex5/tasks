@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
-import { Box } from '@mui/material';
 import { TaskButtonProps } from '../types';
 
 const SwitchContainer = styled(motion.div)<{ isCompleted: boolean }>(({ theme, isCompleted }) => ({

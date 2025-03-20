@@ -8,7 +8,7 @@ export interface Child {
   id: string;
   name: string;
   completedTasks: string[];
-  bgColor: string;
+  backgroundColor: string;
 }
 
 export interface AppState {
@@ -33,4 +33,4 @@ export interface EmojiProgressProps {
   totalTasks: number;
 }
 
-export type EmojiState = '😭' | '😢' | '😐' | '🙂' | '😃' | '😂';
+export type EmojiState = '😴' | '😊' | '😄' | '😃' | '🤩';

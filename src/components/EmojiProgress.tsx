@@ -19,12 +19,11 @@ const EmojiText = styled(motion.div)({
 
 const getEmojiState = (completedTasks: string[], totalTasks: number): EmojiState => {
   const percentage = (completedTasks.length / totalTasks) * 100;
-  if (percentage === 100) return '🤩';
-  if (percentage >= 75) return '😃';
-  if (percentage >= 50) return '🙂';
-  if (percentage >= 25) return '😐';
-  if (percentage >= 1) return '😢';
-  return '😭';
+  if (percentage >= 80) return '🤩';
+  if (percentage >= 60) return '😃';
+  if (percentage >= 40) return '😄';
+  if (percentage >= 20) return '😊';
+  return '😴';
 };
 
 const EmojiProgress = ({ completedTasks, totalTasks }: EmojiProgressProps) => {
