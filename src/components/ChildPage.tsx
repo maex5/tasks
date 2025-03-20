@@ -4,7 +4,7 @@ import { ChildPageProps } from '../types';
 import TaskButton from './TaskButton';
 import EmojiProgress from './EmojiProgress';
 import confetti from 'canvas-confetti';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 
 const PageContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(0.5),
@@ -50,41 +50,59 @@ const ChildName = styled(Typography)(({ theme }) => ({
   lineHeight: 1.2,
 }));
 
-const ChildPage = ({ child, tasks, onTaskToggle }: ChildPageProps) => {
+const CONFETTI_COLORS = ['#FF4444', '#4CAF50', '#FFD700'];
+const CONFETTI_DURATION = 3000;
+
+/**
+ * ChildPage component displays a child's tasks and progress.
+ * It shows the child's name, an emoji progress indicator, and a list of task buttons.
+ * When all tasks are completed, it triggers a confetti animation.
+ */
+const ChildPage = memo(({ child, tasks, onTaskToggle }: ChildPageProps) => {
   const completedTasks = child.completedTasks || [];
   const prevCompletedCountRef = useRef(completedTasks.length);
   
+  const triggerConfetti = useCallback(() => {
+    const end = Date.now() + CONFETTI_DURATION;
+
+    const frame = () => {
+      // Left side confetti
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: CONFETTI_COLORS
+      });
+
+      // Right side confetti
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: CONFETTI_COLORS
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+  }, []);
+
   useEffect(() => {
     // Only trigger confetti if all tasks are completed and the count just changed
     if (completedTasks.length === tasks.length && completedTasks.length > prevCompletedCountRef.current) {
-      const duration = 3000;
-      const end = Date.now() + duration;
-
-      const frame = () => {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: ['#FF4444', '#4CAF50', '#FFD700']
-        });
-        confetti({
-          particleCount: 2,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: ['#FF4444', '#4CAF50', '#FFD700']
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
+      triggerConfetti();
     }
     prevCompletedCountRef.current = completedTasks.length;
-  }, [completedTasks.length, tasks.length]);
+  }, [completedTasks.length, tasks.length, triggerConfetti]);
+
+  const handleTaskToggle = useCallback((taskId: string) => {
+    onTaskToggle(child.id, taskId);
+  }, [child.id, onTaskToggle]);
 
   return (
     <PageContainer maxWidth="sm">
@@ -97,18 +115,20 @@ const ChildPage = ({ child, tasks, onTaskToggle }: ChildPageProps) => {
         totalTasks={tasks.length}
       />
 
-      <TaskList>
+      <TaskList role="list">
         {tasks.map((task) => (
           <TaskButton
             key={task.id}
             task={task}
             isCompleted={completedTasks.includes(task.id)}
-            onToggle={(taskId) => onTaskToggle(child.id, taskId)}
+            onToggle={handleTaskToggle}
           />
         ))}
       </TaskList>
     </PageContainer>
   );
-};
+});
+
+ChildPage.displayName = 'ChildPage';
 
 export default ChildPage; 
