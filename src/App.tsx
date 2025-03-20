@@ -44,17 +44,53 @@ const theme = createTheme({
 const CURRENT_CHILD_KEY = 'current-child';
 
 const defaultState: AppState = {
-  tasks: {
-    make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️' },
-    brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️' },
-    do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️' },
-    take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶' },
-    brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙' },
+  taskSets: {
+    morning_routine: {
+      id: 'morning_routine',
+      name: 'Morning Routine',
+      tasks: {
+        make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
+        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
+      }
+    },
+    day_tasks: {
+      id: 'day_tasks',
+      name: 'Day Tasks',
+      tasks: {
+        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 1 },
+        take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 2 },
+      }
+    },
+    evening_routine: {
+      id: 'evening_routine',
+      name: 'Evening Routine',
+      tasks: {
+        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 1 },
+      }
+    }
   },
   children: {
-    alex: { id: 'alex', name: 'Alex', completedTasks: [], backgroundColor: '#FFE5F5' }, // Pink-ish
-    cecci: { id: 'cecci', name: 'Cecci', completedTasks: [], backgroundColor: '#E5FFF0' }, // Mint
-    vicka: { id: 'vicka', name: 'Vicka', completedTasks: [], backgroundColor: '#E5E5FF' }, // Light blue
+    alex: { 
+      id: 'alex', 
+      name: 'Alex', 
+      taskSetId: 'morning_routine',
+      completedTasks: [], 
+      backgroundColor: '#FFE5F5' 
+    },
+    cecci: { 
+      id: 'cecci', 
+      name: 'Cecci',
+      taskSetId: 'day_tasks', 
+      completedTasks: [], 
+      backgroundColor: '#E5FFF0' 
+    },
+    vicka: { 
+      id: 'vicka', 
+      name: 'Vicka',
+      taskSetId: 'evening_routine', 
+      completedTasks: [], 
+      backgroundColor: '#E5E5FF' 
+    },
   },
 };
 
@@ -187,16 +223,8 @@ function App() {
   };
 
   // Sort tasks in chronological order
-  const sortedTasks = Object.values(state.tasks).sort((a, b) => {
-    const order = {
-      'make_bed': 1,
-      'brush_teeth_morning': 2,
-      'do_homework': 3,
-      'take_dog_out': 4,
-      'brush_teeth_evening': 5,
-    };
-    return order[a.id as keyof typeof order] - order[b.id as keyof typeof order];
-  });
+  const currentTaskSet = state.taskSets[currentChild.taskSetId];
+  const sortedTasks = Object.values(currentTaskSet.tasks).sort((a, b) => a.order - b.order);
 
   const handleNextChild = () => {
     setCurrentChildIndex((prev) => (prev + 1) % children.length);
@@ -241,7 +269,14 @@ function App() {
             <IconButton onClick={handlePrevChild} size="large" sx={{ color: 'primary.main' }}>
               <ArrowBackIcon />
             </IconButton>
-            <Box sx={{ flex: 1 }} />
+            <Box sx={{ 
+              flex: 1,
+              textAlign: 'center',
+              typography: 'h6',
+              color: 'primary.main'
+            }}>
+              {currentTaskSet.name}
+            </Box>
             <IconButton onClick={handleNextChild} size="large" sx={{ color: 'primary.main' }}>
               <ArrowForwardIcon />
             </IconButton>
