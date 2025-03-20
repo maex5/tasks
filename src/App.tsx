@@ -41,7 +41,6 @@ const theme = createTheme({
   },
 });
 
-const STORAGE_KEY = 'kids-tasks-state';
 const CURRENT_CHILD_KEY = 'current-child';
 
 const defaultState: AppState = {

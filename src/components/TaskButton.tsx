@@ -39,9 +39,9 @@ const TaskEmoji = styled(motion.div)<{ isCompleted: boolean }>(({ isCompleted })
 const TaskButton = ({ task, isCompleted, onToggle }: TaskButtonProps) => {
   const handleClick = () => {
     // Play sound effect
-    const audio = new Audio('switch-sound.mp3');
+    const audio = new Audio('/tasks/switch-sound.mp3');
     audio.play().catch(() => {
-      // Remove console.log statement
+      // Silent catch
     });
     onToggle(task.id);
   };
