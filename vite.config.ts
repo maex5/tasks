@@ -4,15 +4,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const envWithProcessPrefix = Object.entries(env).reduce(
-    (prev, [key, val]) => {
-      return {
-        ...prev,
-        ['import.meta.env.' + key]: JSON.stringify(val),
-      }
-    },
-    {},
-  )
 
   return {
     plugins: [
@@ -49,6 +40,11 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    define: envWithProcessPrefix
+    define: {
+      'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(env.VITE_FIREBASE_API_KEY),
+      'import.meta.env.VITE_FIREBASE_AUTH_DOMAIN': JSON.stringify(env.VITE_FIREBASE_AUTH_DOMAIN),
+      'import.meta.env.VITE_FIREBASE_DATABASE_URL': JSON.stringify(env.VITE_FIREBASE_DATABASE_URL),
+      'import.meta.env.VITE_FIREBASE_PROJECT_ID': JSON.stringify(env.VITE_FIREBASE_PROJECT_ID)
+    }
   }
 }) 

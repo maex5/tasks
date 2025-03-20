@@ -15,6 +15,13 @@ const firebaseConfig = {
   appId: "1:222183554116:web:42ae8e8f1d224ce8475011"
 };
 
+// Debug logging
+console.log('Firebase Config:', {
+  ...firebaseConfig,
+  apiKey: firebaseConfig.apiKey ? '[HIDDEN]' : undefined,
+  databaseURL: firebaseConfig.databaseURL || 'NOT_SET'
+});
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const database = getDatabase(app);
