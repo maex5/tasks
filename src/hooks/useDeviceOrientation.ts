@@ -5,15 +5,6 @@ interface DeviceOrientation {
   gamma: number | null; // Left-to-right tilt in degrees, ranging from -90 to 90
 }
 
-// Extend the DeviceOrientationEvent interface for iOS
-interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
-  requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
-}
-
-interface DeviceOrientationEventStatic extends EventTarget {
-  requestPermission?: () => Promise<'granted' | 'denied' | 'default'>;
-}
-
 export function useDeviceOrientation() {
   const [orientation, setOrientation] = useState<DeviceOrientation>({
     beta: null,
@@ -21,44 +12,22 @@ export function useDeviceOrientation() {
   });
 
   useEffect(() => {
-    // Check if the device supports DeviceOrientationEvent
-    if (!window.DeviceOrientationEvent) {
-      console.log('Device orientation not supported');
-      return;
-    }
+    // Handle mouse movement simulation
+    const handleMouseMove = (e: MouseEvent) => {
+      const fakeGamma = ((e.clientX / window.innerWidth) - 0.5) * 180; // -90 to 90
+      const fakeBeta = ((e.clientY / window.innerHeight) - 0.5) * 180; // -90 to 90
 
-    // Request permission for iOS devices
-    const requestPermission = async () => {
-      const DeviceOrientationEvent = window.DeviceOrientationEvent as unknown as DeviceOrientationEventStatic;
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        try {
-          const permission = await DeviceOrientationEvent.requestPermission();
-          if (permission !== 'granted') {
-            console.log('Permission not granted');
-            return;
-          }
-        } catch (error) {
-          console.error('Error requesting device orientation permission:', error);
-          return;
-        }
-      }
-    };
-
-    const handleOrientation = (event: DeviceOrientationEvent) => {
       setOrientation({
-        beta: event.beta,
-        gamma: event.gamma,
+        beta: fakeBeta,
+        gamma: fakeGamma,
       });
     };
 
-    // Request permission and add event listener
-    requestPermission().then(() => {
-      window.addEventListener('deviceorientation', handleOrientation, true);
-    });
+    window.addEventListener('mousemove', handleMouseMove);
 
     // Cleanup
     return () => {
-      window.removeEventListener('deviceorientation', handleOrientation, true);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
