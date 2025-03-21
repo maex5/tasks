@@ -68,7 +68,7 @@ const DEFAULT_STATE = {
       name: 'Alex',
       taskSetId: 'alex_tasks',
       completedTasks: [],
-      backgroundColor: 'linear-gradient(to bottom right, #FFA500, #0066FF)'
+      backgroundColor: 'linear-gradient(to bottom right, #B0E0FF, #0047AB)'
     },
     cecci: {
       id: 'cecci',

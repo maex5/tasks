@@ -19,7 +19,7 @@ function ChildPage({ child, tasks, onTaskToggle }: ChildPageProps) {
 
   const playPopSound = useCallback(() => {
     const audio = new Audio('/tasks/pop.mp3');
-    audio.volume = 0.5;
+    audio.volume = 1.0;
     audio.play().catch(error => {
       console.error('Error playing pop sound:', error);
     });

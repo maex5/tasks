@@ -11,7 +11,7 @@ interface TaskListProps {
 export default function TaskList({ tasks, completedTasks, onTaskToggle }: TaskListProps) {
   const playSound = useCallback(() => {
     const audio = new Audio('/tasks/switch-sound.mp3');
-    audio.volume = 0.5;
+    audio.volume = 0.1;
     audio.play().catch(error => {
       console.error('Error playing sound:', error);
     });
