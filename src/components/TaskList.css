@@ -4,6 +4,7 @@
   gap: 1rem;
   padding: 1rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .task-list::-webkit-scrollbar {
@@ -24,8 +25,10 @@
   height: 80px;
   font-size: 2rem;
   border-radius: 8px;
-  background-color: white;
-  border: none;
+  background-color: transparent;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   display: flex;
@@ -36,14 +39,38 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.task-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  z-index: -1;
+}
+
+.task-button:active {
+  transform: scale(0.95);
+}
+
+.task-button.completed::before {
+  background-color: rgba(152, 251, 152, 0.35);
 }
 
 .task-button.completed {
-  background-color: #98FB98;
+  border-color: rgba(152, 251, 152, 0.5);
   color: #333;
 }
 
 .task-emoji {
   line-height: 1;
   pointer-events: none;
+  font-size: 2.5rem;
+  z-index: 1;
 } 

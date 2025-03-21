@@ -5,11 +5,12 @@ A beautiful and interactive task tracking application for kids, built with React
 ## Features
 
 - 🎯 Individual task lists for each child
-- 🌈 Custom gradient backgrounds for each child
+- 🌈 Personalized color themes with animated gradients
 - ✨ Interactive task completion with animations
 - 🎉 Celebration effects when all tasks are completed
+- 📱 Responsive design with iOS-optimized UI
+- 🎮 Interactive 3D emoji that responds to device orientation
 - 🔄 Automatic daily task reset
-- 📱 Responsive design for all devices
 - 🌍 Time-zone aware (Finnish timezone)
 
 ## Setup
@@ -45,12 +46,15 @@ src/
 │   ├── TaskList/       # Task list component
 │   └── EmojiProgress/  # Progress indicator component
 ├── config/             # Configuration files
-│   └── tasks.ts        # Task definitions and gradients
+│   └── tasks.ts        # Task definitions and default state
 ├── hooks/              # Custom React hooks
 │   ├── useFirebaseState.ts
+│   ├── useDeviceOrientation.ts
 │   └── useTaskReset.ts
 ├── services/           # External services
-│   └── firebase.ts     # Firebase configuration
+│   └── firebase.ts     # Firebase configuration and service
+├── types/              # TypeScript type definitions
+│   └── index.ts
 └── App.tsx             # Main application component
 ```
 
@@ -59,21 +63,28 @@ src/
 ### Task Management
 - Each child has their own set of daily tasks
 - Tasks are represented by emojis for easy recognition
-- Tasks turn pastel green when completed
-- Progress is shown with animated emoji indicators (😭 → 😢 → 😐 → 🙂 → 😃 → 🤩)
+- Tasks have a modern glass-morphism design
+- Tasks turn green when completed
+- Progress is shown with an interactive 3D emoji
 
-### Visual Design
-- Custom gradient backgrounds for each child:
-  - Alex: Orange and Blue gradients
-  - Cecci: Pink and Purple gradients
-  - Vicka: Red and Yellow gradients
-- Clean, minimalist interface with pure CSS (no UI framework)
-- Smooth animations using Framer Motion
+### Interactive Elements
+- Background gradients animate smoothly
+- 3D emoji tilts based on device orientation
+- Smooth transitions and animations
+- Proper iOS support for transparency and blur effects
 
 ### Automatic Reset
 - Tasks automatically reset daily
 - Reset timing is based on Finnish timezone
 - Reset occurs at midnight or after 24 hours
+
+### UI/UX
+- Modern glass-morphism design
+- Smooth animations and transitions
+- Confetti celebration on task completion
+- Custom animated gradient backgrounds for each child
+- Easy navigation between children
+- iOS-optimized interface
 
 ## Development
 
@@ -82,26 +93,15 @@ src/
 npm run build
 ```
 
+### Type Checking
+```bash
+npm run type-check
+```
+
 ### Linting
 ```bash
 npm run lint
 ```
-
-## Deployment
-
-The application is automatically deployed to GitHub Pages using GitHub Actions. The deployment workflow:
-
-1. Triggers on push to the main branch
-2. Builds the application with the correct base path (/tasks/)
-3. Deploys to GitHub Pages
-
-To deploy manually:
-```bash
-npm run build
-```
-Then commit and push to the main branch. The GitHub Actions workflow will handle the deployment.
-
-The application will be available at: `https://[your-username].github.io/tasks/`
 
 ## Firebase Structure
 
@@ -109,30 +109,36 @@ The application uses Firebase Realtime Database with the following structure:
 
 ```json
 {
-  "state": {
-    "children": {
-      "alex": {
-        "id": "alex",
-        "name": "Alex",
-        "completedTasks": ["task1", "task2"]
-      },
-      "cecci": { ... },
-      "vicka": { ... }
-    },
-    "taskSets": {
-      "alex_tasks": {
-        "tasks": {
-          "task1": { "id": "task1", "name": "Task 1", "emoji": "🎮", "order": 1 },
-          "task2": { "id": "task2", "name": "Task 2", "emoji": "📚", "order": 2 }
+  "children": {
+    "child_id": {
+      "id": "string",
+      "name": "string",
+      "taskSetId": "string",
+      "completedTasks": ["task_id"]
+    }
+  },
+  "taskSets": {
+    "set_id": {
+      "id": "string",
+      "name": "string",
+      "tasks": {
+        "task_id": {
+          "id": "string",
+          "name": "string",
+          "emoji": "string",
+          "order": number
         }
-      },
-      "cecci_tasks": { ... },
-      "vicka_tasks": { ... }
-    },
-    "lastReset": "ISO timestamp"
+      }
+    }
   }
 }
 ```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Submit a pull request
 
 ## License
 
