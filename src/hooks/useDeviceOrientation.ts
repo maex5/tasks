@@ -12,11 +12,6 @@ interface UseDeviceOrientationResult {
   permissionState: 'granted' | 'denied' | 'prompt';
 }
 
-// Add iOS-specific types
-interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
-  requestPermission?: () => Promise<'granted' | 'denied' | 'prompt'>;
-}
-
 type DeviceOrientationStatic = {
   new(type: string, eventInitDict?: DeviceOrientationEventInit): DeviceOrientationEvent;
   requestPermission?: () => Promise<'granted' | 'denied' | 'prompt'>;
