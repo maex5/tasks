@@ -16,17 +16,21 @@ export function useTaskReset(
         const currentState = await firebaseService.getState();
         if (!currentState) return;
         
+        // Use Finnish timezone (UTC+2/+3)
         const now = new Date();
-        const lastResetDate = currentState.lastReset ? new Date(currentState.lastReset) : null;
+        const finnishTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Helsinki' }));
+        const lastResetDate = currentState.lastReset ? 
+          new Date(new Date(currentState.lastReset).toLocaleString('en-US', { timeZone: 'Europe/Helsinki' })) : 
+          null;
         
         // Reset if:
         // 1. No last reset
-        // 2. Last reset was on a different day
+        // 2. Last reset was on a different day in Finnish time
         // 3. Last reset was more than 24 hours ago
         if (!currentState.lastReset || 
             !lastResetDate || 
-            lastResetDate.getDate() !== now.getDate() ||
-            now.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
+            lastResetDate.getDate() !== finnishTime.getDate() ||
+            finnishTime.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
           
           const resetState: AppState = {
             ...currentState,
@@ -46,9 +50,11 @@ export function useTaskReset(
       }
     };
 
-    // Check every 5 minutes, not immediately on every device load
-    // This prevents race conditions when multiple devices are opened at the same time
+    // Check every 5 minutes
     const interval = setInterval(checkAndResetTasks, 5 * 60 * 1000);
+    
+    // Also check immediately when component mounts
+    checkAndResetTasks();
     
     return () => clearInterval(interval);
   }, [state, updateState]);

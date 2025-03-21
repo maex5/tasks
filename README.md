@@ -1,20 +1,53 @@
-# Kids Tasks App
+# Tasks App
 
-A playful task tracking app for kids, built with React, TypeScript, and PWA technologies.
+A simple task tracking app for children, built with React and Firebase.
 
 ## Features
 
-- 🎨 Playful and colorful design with Nunito font
-- 👶 Multiple child profiles
-- 📱 Mobile-first PWA
-- 🔄 Offline support with Firebase sync
-- 🌙 Automatic daily reset
-- 🎯 Task completion tracking
-- 😊 Emoji progress indicators
-- 🎉 Celebration confetti on task completion
-- 🔄 Real-time sync across devices with Firebase
-- 🎨 Unique background colors for each child
-- 🔊 Sound effects on task completion
+- 🌙 Daily task reset at midnight (Finnish time)
+- 👶 Multiple children support with individual task sets
+- 🎨 Personalized background colors for each child
+- 🔄 Real-time sync across devices
+- 📱 Progressive Web App (PWA) support
+- 🌐 Works offline
+
+## Task Sets
+
+- **Alex**: Basic daily tasks (bed, teeth, homework, etc.)
+- **Vicka**: Custom tasks including piano practice, reading, and plant care
+- **Cecci**: Creative tasks like drawing, dancing, and cooking help
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## Environment Variables
+
+Create a `.env` file with your Firebase configuration:
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_DATABASE_URL=your_database_url
+VITE_FIREBASE_PROJECT_ID=your_project_id
+```
+
+## Technical Stack
+
+- React + TypeScript
+- Firebase Realtime Database
+- Material-UI
+- Vite
+- PWA
 
 ## Recent Updates
 
