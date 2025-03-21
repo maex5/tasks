@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { useFirebaseState } from './hooks/useFirebaseState';
 import { useTaskReset } from './hooks/useTaskReset';
 import ChildPage from './components/ChildPage';
+import AnimatedBackground from './components/AnimatedBackground';
 import { ChildId, isValidChildId, Child, Task } from './types';
-import { CHILD_TASK_SET_MAP, CHILD_BACKGROUNDS } from './config/tasks';
+import { CHILD_TASK_SET_MAP } from './config/tasks';
 import './App.css';
 
 const CURRENT_CHILD_KEY = 'current-child';
 const CHILD_IDS = ['alex', 'cecci', 'vicka'] as const;
+
+const CHILD_COLORS: Record<ChildId, [string, string]> = {
+  alex: ['#FFA500', '#0066FF'],
+  cecci: ['#fbd3e9', '#bb377d'],
+  vicka: ['#ff4e50', '#f9d423'],
+} as const;
 
 function App() {
   const { 
@@ -97,9 +104,8 @@ function App() {
   };
 
   return (
-    <div className="app-container" style={{ 
-      backgroundImage: CHILD_BACKGROUNDS[currentChild.id]
-    }}>
+    <div className="app-container">
+      <AnimatedBackground colors={CHILD_COLORS[currentChild.id]} />
       <div className="main-container">
         <nav className="nav-bar">
           <button 

@@ -17,6 +17,14 @@ function ChildPage({ child, tasks, onTaskToggle }: ChildPageProps) {
   const progress = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
   const prevCompletedCountRef = useRef(completedCount);
 
+  const playPopSound = useCallback(() => {
+    const audio = new Audio('/tasks/pop.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(error => {
+      console.error('Error playing pop sound:', error);
+    });
+  }, []);
+
   const triggerConfetti = useCallback(() => {
     const count = 200;
     const defaults = {
@@ -58,7 +66,9 @@ function ChildPage({ child, tasks, onTaskToggle }: ChildPageProps) {
       spread: 120,
       startVelocity: 45,
     });
-  }, []);
+
+    playPopSound();
+  }, [playPopSound]);
 
   useEffect(() => {
     if (completedCount === totalTasks && completedCount > prevCompletedCountRef.current) {
