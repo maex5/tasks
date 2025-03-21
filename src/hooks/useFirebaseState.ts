@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { firebaseService } from '../services/firebase';
-import { AppState, Child, ChildId, TaskSetId } from '../types/state';
+import { AppState, Child, ChildId } from '../types/state';
 import { DEFAULT_STATE } from '../config/tasks';
 
 interface UseFirebaseStateResult {
@@ -10,33 +10,6 @@ interface UseFirebaseStateResult {
   error: Error | null;
   updateState: (newState: AppState) => Promise<void>;
   updateChild: (childId: ChildId, updates: Partial<Child>) => Promise<void>;
-}
-
-/**
- * Validates and filters completed tasks to ensure they only include valid task IDs
- * from the child's task set
- */
-function validateCompletedTasks(
-  completedTasks: string[],
-  taskSetId: TaskSetId,
-  taskSets: AppState['taskSets']
-): string[] {
-  const taskSet = taskSets[taskSetId];
-  if (!taskSet) {
-    console.warn(`Task set ${taskSetId} not found, resetting completed tasks`);
-    return [];
-  }
-
-  const validTaskIds = new Set(Object.keys(taskSet.tasks));
-  const validatedTasks = completedTasks.filter(taskId => {
-    const isValid = validTaskIds.has(taskId);
-    if (!isValid) {
-      console.warn(`Removing invalid task ID ${taskId} from completed tasks`);
-    }
-    return isValid;
-  });
-
-  return validatedTasks;
 }
 
 export function useFirebaseState(): UseFirebaseStateResult {
@@ -164,70 +137,5 @@ export function useFirebaseState(): UseFirebaseStateResult {
     error,
     updateState,
     updateChild
-  };
-}
-
-// Default state helper
-function getDefaultState(): AppState {
-  return {
-    taskSets: {
-      alex_tasks: {
-        id: 'alex_tasks',
-        name: 'Alex\'s Tasks',
-        tasks: {
-          make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
-          brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
-          do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
-          take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
-          brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 5 },
-        }
-      },
-      vicka_tasks: {
-        id: 'vicka_tasks',
-        name: 'Vicka\'s Tasks',
-        tasks: {
-          clean_room: { id: 'clean_room', name: '🧹', emoji: '🧹', order: 1 },
-          practice_piano: { id: 'practice_piano', name: '🎹', emoji: '🎹', order: 2 },
-          read_book: { id: 'read_book', name: '📖', emoji: '📖', order: 3 },
-          water_plants: { id: 'water_plants', name: '🪴', emoji: '🪴', order: 4 },
-          feed_fish: { id: 'feed_fish', name: '🐠', emoji: '🐠', order: 5 }
-        }
-      },
-      cecci_tasks: {
-        id: 'cecci_tasks',
-        name: 'Cecci\'s Tasks',
-        tasks: {
-          draw_picture: { id: 'draw_picture', name: '🎨', emoji: '🎨', order: 1 },
-          dance_practice: { id: 'dance_practice', name: '💃', emoji: '💃', order: 2 },
-          help_cooking: { id: 'help_cooking', name: '👩‍🍳', emoji: '👩‍🍳', order: 3 },
-          tidy_toys: { id: 'tidy_toys', name: '🧸', emoji: '🧸', order: 4 },
-          feed_cat: { id: 'feed_cat', name: '🐱', emoji: '🐱', order: 5 }
-        }
-      }
-    },
-    children: {
-      alex: {
-        id: 'alex',
-        name: 'Alex',
-        taskSetId: 'alex_tasks',
-        completedTasks: [],
-        backgroundColor: '#FFE5F5'
-      },
-      cecci: {
-        id: 'cecci',
-        name: 'Cecci',
-        taskSetId: 'cecci_tasks',
-        completedTasks: [],
-        backgroundColor: '#E5FFF0'
-      },
-      vicka: {
-        id: 'vicka',
-        name: 'Vicka',
-        taskSetId: 'vicka_tasks',
-        completedTasks: [],
-        backgroundColor: '#E5E5FF'
-      }
-    },
-    lastReset: null
   };
 } 
