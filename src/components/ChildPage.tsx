@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import confetti from 'canvas-confetti';
 import { useEffect, useRef, useCallback, memo } from 'react';
 import { Child, Task } from '../types/state';
-import TaskList from './TaskList.tsx';
+import TaskList from './TaskList';
 import EmojiProgress from './EmojiProgress';
 
 const PageContainer = styled(Container)(({ theme }) => ({

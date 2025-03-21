@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { firebaseService } from '../services/firebase';
-import { AppState } from '../types';
+import { AppState, Child, ChildId, TaskSetId } from '../types/state';
+import { DEFAULT_STATE } from '../config/tasks';
 
 interface UseFirebaseStateResult {
   state: AppState | null;
@@ -8,7 +9,34 @@ interface UseFirebaseStateResult {
   isLoading: boolean;
   error: Error | null;
   updateState: (newState: AppState) => Promise<void>;
-  updateChild: (childId: string, updates: Partial<AppState['children'][string]>) => Promise<void>;
+  updateChild: (childId: ChildId, updates: Partial<Child>) => Promise<void>;
+}
+
+/**
+ * Validates and filters completed tasks to ensure they only include valid task IDs
+ * from the child's task set
+ */
+function validateCompletedTasks(
+  completedTasks: string[],
+  taskSetId: TaskSetId,
+  taskSets: AppState['taskSets']
+): string[] {
+  const taskSet = taskSets[taskSetId];
+  if (!taskSet) {
+    console.warn(`Task set ${taskSetId} not found, resetting completed tasks`);
+    return [];
+  }
+
+  const validTaskIds = new Set(Object.keys(taskSet.tasks));
+  const validatedTasks = completedTasks.filter(taskId => {
+    const isValid = validTaskIds.has(taskId);
+    if (!isValid) {
+      console.warn(`Removing invalid task ID ${taskId} from completed tasks`);
+    }
+    return isValid;
+  });
+
+  return validatedTasks;
 }
 
 export function useFirebaseState(): UseFirebaseStateResult {
@@ -29,32 +57,33 @@ export function useFirebaseState(): UseFirebaseStateResult {
         // Subscribe to connection status
         unsubscribeConnection = firebaseService.subscribeToConnection((connected) => {
           if (isMounted) {
+            console.log('Firebase connection status:', connected ? 'online' : 'offline');
             setIsOnline(connected);
           }
         });
 
         // Get initial state
         const initialState = await firebaseService.getState();
+        console.log('Initial Firebase state:', initialState);
         
         if (isMounted) {
           if (!initialState) {
-            // Initialize with default state if none exists
-            const defaultState = getDefaultState();
-            await firebaseService.setState(defaultState);
-            setState(defaultState);
+            console.log('No state found, initializing with default state:', DEFAULT_STATE);
+            await firebaseService.setState(DEFAULT_STATE);
+            setState(DEFAULT_STATE);
           } else {
             setState(initialState);
           }
-          
+
           // Subscribe to state changes
           unsubscribeState = firebaseService.subscribeToState((newState) => {
             if (isMounted && newState) {
+              console.log('State update received:', newState);
               setState(newState);
             }
           });
 
           hasInitialized.current = true;
-          // Only set loading to false after we have both state and connection status
           setIsLoading(false);
         }
       } catch (err) {
@@ -78,17 +107,19 @@ export function useFirebaseState(): UseFirebaseStateResult {
   // Update entire state
   const updateState = useCallback(async (newState: AppState) => {
     try {
+      console.log('Updating entire state:', newState);
       await firebaseService.setState(newState);
     } catch (err) {
+      console.error('Failed to update state:', err);
       setError(err instanceof Error ? err : new Error('Failed to update state'));
       throw err;
     }
   }, []);
 
-  // Update a specific child
+  // Update a specific child with type safety
   const updateChild = useCallback(async (
-    childId: string, 
-    updates: Partial<AppState['children'][string]>
+    childId: ChildId,
+    updates: Partial<Child>
   ) => {
     if (!state) throw new Error('State not initialized');
 
@@ -96,14 +127,20 @@ export function useFirebaseState(): UseFirebaseStateResult {
       const child = state.children[childId];
       if (!child) throw new Error(`Child ${childId} not found`);
 
+      console.log('Updating child:', {
+        childId,
+        currentState: child,
+        updates,
+      });
+
       // Ensure completedTasks is always an array
       const updatedChild = {
         ...child,
         ...updates,
-        completedTasks: Array.isArray(updates.completedTasks) ? updates.completedTasks : child.completedTasks || []
+        completedTasks: Array.isArray(updates.completedTasks) ? updates.completedTasks : child.completedTasks
       };
 
-      const newState = {
+      const newState: AppState = {
         ...state,
         children: {
           ...state.children,
@@ -111,6 +148,7 @@ export function useFirebaseState(): UseFirebaseStateResult {
         }
       };
 
+      console.log('New state after child update:', newState);
       await firebaseService.setState(newState);
     } catch (err) {
       console.error('Error updating child:', err);
@@ -133,9 +171,9 @@ export function useFirebaseState(): UseFirebaseStateResult {
 function getDefaultState(): AppState {
   return {
     taskSets: {
-      all_tasks: {
-        id: 'all_tasks',
-        name: 'All Tasks',
+      alex_tasks: {
+        id: 'alex_tasks',
+        name: 'Alex\'s Tasks',
         tasks: {
           make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
           brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
@@ -171,7 +209,7 @@ function getDefaultState(): AppState {
       alex: {
         id: 'alex',
         name: 'Alex',
-        taskSetId: 'all_tasks',
+        taskSetId: 'alex_tasks',
         completedTasks: [],
         backgroundColor: '#FFE5F5'
       },
