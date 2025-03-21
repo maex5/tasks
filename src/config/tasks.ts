@@ -76,14 +76,14 @@ export const DEFAULT_STATE: AppState = {
       name: 'Alex',
       taskSetId: 'alex_tasks',
       completedTasks: [],
-      backgroundColor: 'linear-gradient(to bottom right, #B0E0FF, #0047AB)'
+      backgroundColor: 'linear-gradient(to bottom right, #E6F3FF, #0047AB)'
     },
     cecci: {
       id: 'cecci',
       name: 'Cecci',
       taskSetId: 'cecci_tasks',
       completedTasks: [],
-      backgroundColor: 'linear-gradient(to bottom right, #fbd3e9, #bb377d)'
+      backgroundColor: 'linear-gradient(to bottom right, #FFF0F5, #FF69B4)'
     },
     vicka: {
       id: 'vicka',
