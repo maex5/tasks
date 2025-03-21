@@ -1,9 +1,9 @@
-import { Box, Typography, Container } from '@mui/material';
+import { Typography, Container } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import confetti from 'canvas-confetti';
 import { useEffect, useRef, useCallback, memo } from 'react';
 import { Child, Task } from '../types/state';
-import TaskList from './TaskList';
+import TaskList from './TaskList.tsx';
 import EmojiProgress from './EmojiProgress';
 
 const PageContainer = styled(Container)(({ theme }) => ({
