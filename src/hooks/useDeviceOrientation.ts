@@ -16,9 +16,6 @@ export function useDeviceOrientation() {
   });
 
   useEffect(() => {
-    let isUsingMouse = false;
-
-    // Handle device orientation
     const handleOrientation = (event: DeviceOrientationEvent) => {
       if (event.beta !== null && event.gamma !== null) {
         setOrientation({
@@ -28,52 +25,30 @@ export function useDeviceOrientation() {
       }
     };
 
-    // Handle mouse movement simulation (desktop only)
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isUsingMouse) return;
-      const fakeGamma = ((e.clientX / window.innerWidth) - 0.5) * 180;
-      const fakeBeta = ((e.clientY / window.innerHeight) - 0.5) * 180;
-
-      setOrientation({
-        beta: fakeBeta,
-        gamma: fakeGamma,
-      });
-    };
-
-    // Setup orientation handling
     const setupOrientation = async () => {
-      // Check if this is a mobile device
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-      if (isMobile && window.DeviceOrientationEvent) {
-        // Handle iOS permission
+      // Check if we need to request permission (iOS)
+      const requestPermission = async () => {
         if (typeof (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS).requestPermission === 'function') {
-          try {
-            const permission = await (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS).requestPermission();
-            if (permission === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation);
-            }
-          } catch (error) {
-            isUsingMouse = true;
-          }
-        } else {
-          // Non-iOS mobile devices
+          const permission = await (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS).requestPermission();
+          return permission === 'granted';
+        }
+        return true; // Non-iOS devices don't need permission
+      };
+
+      try {
+        const permissionGranted = await requestPermission();
+        if (permissionGranted) {
           window.addEventListener('deviceorientation', handleOrientation);
         }
-      } else {
-        // Desktop devices use mouse movement
-        isUsingMouse = true;
+      } catch (error) {
+        console.error('Error setting up device orientation:', error);
       }
     };
 
-    // Initialize
     setupOrientation();
-    window.addEventListener('mousemove', handleMouseMove);
 
-    // Cleanup
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation);
-      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
