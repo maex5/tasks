@@ -1,6 +1,5 @@
-import { Box } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { motion } from 'framer-motion';
+import './EmojiProgress.css';
 
 interface EmojiProgressProps {
   progress: number;
@@ -22,30 +21,16 @@ const EMOJI_THRESHOLDS = [
   { threshold: 0, emoji: '😭', label: 'Not started' },
 ] as const;
 
-const EmojiContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  padding: theme.spacing(2),
-  marginBottom: theme.spacing(4),
-}));
-
-const EmojiText = styled(motion.div)({
-  fontSize: '6rem',
-  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
-  userSelect: 'none',
-});
-
-const EmojiProgress = ({ progress }: EmojiProgressProps) => {
+function EmojiProgress({ progress }: EmojiProgressProps) {
   const { emoji, label } = EMOJI_THRESHOLDS.find(
     ({ threshold }) => progress >= threshold
   ) || EMOJI_THRESHOLDS[EMOJI_THRESHOLDS.length - 1];
 
   return (
-    <EmojiContainer role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-      <EmojiText
+    <div className="emoji-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      <motion.div
         key={emoji}
+        className="emoji"
         initial={{ scale: 0.5, opacity: 0, rotate: -180 }}
         animate={{ scale: 1, opacity: 1, rotate: 0 }}
         exit={{ scale: 0.5, opacity: 0, rotate: 180 }}
@@ -53,11 +38,9 @@ const EmojiProgress = ({ progress }: EmojiProgressProps) => {
         aria-label={`${label} - ${progress}% complete`}
       >
         {emoji}
-      </EmojiText>
-    </EmojiContainer>
+      </motion.div>
+    </div>
   );
-};
-
-EmojiProgress.displayName = 'EmojiProgress';
+}
 
 export default EmojiProgress; 

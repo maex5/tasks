@@ -1,32 +1,9 @@
-import { Typography, Container } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { useEffect, useRef, useCallback, memo } from 'react';
 import { Child, Task, ChildId } from '../types';
 import TaskList from './TaskList';
 import EmojiProgress from './EmojiProgress';
-
-const PageContainer = styled(Container)(({ theme }) => ({
-  padding: theme.spacing(0.5),
-  textAlign: 'center',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(0.5),
-  height: '100%',
-  maxHeight: '100%',
-  overflow: 'hidden',
-}));
-
-const ChildName = styled(Typography)(({ theme }) => ({
-  fontSize: '1.75rem',
-  fontWeight: 700,
-  background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
-  marginBottom: theme.spacing(0.5),
-  lineHeight: 1.2,
-}));
+import './ChildPage.css';
 
 interface ChildPageProps {
   child: Child;
@@ -34,16 +11,10 @@ interface ChildPageProps {
   onTaskToggle: (childId: ChildId, taskId: string) => void;
 }
 
-/**
- * ChildPage component displays a child's tasks and progress.
- * It shows the child's name, an emoji progress indicator, and a list of task buttons.
- * When all tasks are completed, it triggers a confetti animation.
- */
-const ChildPage = memo(({ child, tasks, onTaskToggle }: ChildPageProps) => {
-  const completedTasks = Array.isArray(child.completedTasks) ? child.completedTasks : [];
+function ChildPage({ child, tasks, onTaskToggle }: ChildPageProps) {
+  const completedCount = child.completedTasks?.length || 0;
   const totalTasks = tasks.length;
-  const completedCount = completedTasks.length;
-  const progress = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+  const progress = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0;
   const prevCompletedCountRef = useRef(completedCount);
 
   const triggerConfetti = useCallback(() => {
@@ -91,43 +62,24 @@ const ChildPage = memo(({ child, tasks, onTaskToggle }: ChildPageProps) => {
 
   useEffect(() => {
     if (completedCount === totalTasks && completedCount > prevCompletedCountRef.current) {
-      console.log('All tasks completed! 🎉', {
-        childName: child.name,
-        completedTasks
-      });
       triggerConfetti();
     }
     prevCompletedCountRef.current = completedCount;
-  }, [completedCount, totalTasks, triggerConfetti, child.name, completedTasks]);
-
-  const handleTaskToggle = useCallback((taskId: string) => {
-    console.log('Task toggled:', {
-      childName: child.name,
-      taskId,
-      wasCompleted: completedTasks.includes(taskId),
-      completedCount: completedCount,
-      totalTasks: totalTasks
-    });
-    onTaskToggle(child.id, taskId);
-  }, [child.id, child.name, completedTasks, totalTasks, onTaskToggle]);
+  }, [completedCount, totalTasks, triggerConfetti]);
 
   return (
-    <PageContainer maxWidth="sm">
-      <ChildName variant="h4">
-        {child.name}
-      </ChildName>
-      
-      <EmojiProgress progress={progress} />
-
+    <div className="child-page">
+      <header className="child-header">
+        <h1 className="child-name">{child.name}</h1>
+        <EmojiProgress progress={progress} />
+      </header>
       <TaskList
         tasks={tasks}
-        completedTasks={completedTasks}
-        onTaskToggle={handleTaskToggle}
+        completedTasks={child.completedTasks || []}
+        onTaskToggle={(taskId) => onTaskToggle(child.id, taskId)}
       />
-    </PageContainer>
+    </div>
   );
-});
-
-ChildPage.displayName = 'ChildPage';
+}
 
 export default ChildPage; 

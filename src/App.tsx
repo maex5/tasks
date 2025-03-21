@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline, Box, Container, IconButton, CircularProgress, Alert } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ChildPage from './components/ChildPage';
 import { useFirebaseState } from './hooks/useFirebaseState';
 import { useTaskReset } from './hooks/useTaskReset';
-import { theme } from './theme';
-import { CHILD_TASK_SET_MAP } from './config/tasks';
+import ChildPage from './components/ChildPage';
 import { ChildId, isValidChildId, Child, Task } from './types';
+import { CHILD_TASK_SET_MAP, CHILD_BACKGROUNDS } from './config/tasks';
+import './App.css';
 
 const CURRENT_CHILD_KEY = 'current-child';
 const CHILD_IDS = ['alex', 'cecci', 'vicka'] as const;
@@ -42,30 +38,19 @@ function App() {
 
   if (isLoading || !state?.children || !state?.taskSets) {
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          bgcolor: 'background.default'
-        }}>
-          <CircularProgress />
-          {!isOnline && (
-            <Alert severity="warning" sx={{ maxWidth: 400 }}>
-              Connecting to database...
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ maxWidth: 400 }}>
-              {error.message}
-            </Alert>
-          )}
-        </Box>
-      </ThemeProvider>
+      <div className="loading-container">
+        <div className="loading-spinner" />
+        {!isOnline && (
+          <div className="alert alert-warning">
+            Connecting to database...
+          </div>
+        )}
+        {error && (
+          <div className="alert alert-error">
+            {error.message}
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -74,13 +59,22 @@ function App() {
   const taskSetId = CHILD_TASK_SET_MAP[currentChild.id];
   const currentTaskSet = state.taskSets[taskSetId];
   
-  console.log('Current child and tasks:', {
-    childName: currentChild.name,
-    taskSetId: taskSetId,
-    availableTasks: currentTaskSet?.tasks || {},
-    taskSetName: currentTaskSet?.name || 'Unknown'
-  });
-  
+  if (!currentTaskSet?.tasks) {
+    return (
+      <div className="loading-container">
+        <div className="alert alert-error">
+          No task set found for {currentChild.name}. Please check your configuration.
+        </div>
+      </div>
+    );
+  }
+
+  const sortedTasks = Object.values(currentTaskSet.tasks)
+    .sort((a: Task, b: Task) => a.order - b.order);
+
+  const handleNextChild = () => setCurrentChildIndex((prev) => (prev + 1) % children.length);
+  const handlePrevChild = () => setCurrentChildIndex((prev) => (prev - 1 + children.length) % children.length);
+
   const handleTaskToggle = async (childId: ChildId, taskId: string) => {
     if (!state || !isOnline || !isValidChildId(childId)) return;
 
@@ -102,88 +96,35 @@ function App() {
     }
   };
 
-  if (!currentTaskSet?.tasks) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          bgcolor: 'background.default'
-        }}>
-          <Alert severity="error" sx={{ maxWidth: 400 }}>
-            No task set found for {currentChild.name}. Please check your configuration.
-          </Alert>
-        </Box>
-      </ThemeProvider>
-    );
-  }
-
-  const sortedTasks = Object.values(currentTaskSet.tasks)
-    .sort((a: Task, b: Task) => a.order - b.order);
-
-  const handleNextChild = () => setCurrentChildIndex((prev) => (prev + 1) % children.length);
-  const handlePrevChild = () => setCurrentChildIndex((prev) => (prev - 1 + children.length) % children.length);
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ 
-        position: 'fixed',
-        inset: 0,
-        display: 'flex', 
-        flexDirection: 'column',
-        bgcolor: currentChild.backgroundColor,
-        overflow: 'hidden',
-        transition: 'background-color 0.3s ease',
-      }}>
-        <Container maxWidth="sm" sx={{ 
-          flex: 1, 
-          display: 'flex', 
-          flexDirection: 'column',
-          py: 1,
-          overflow: 'hidden',
-          position: 'relative',
-        }}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            mb: 1,
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-            bgcolor: 'transparent',
-          }}>
-            <IconButton 
-              onClick={handlePrevChild} 
-              size="large" 
-              sx={{ color: 'primary.main' }}
-              aria-label="Previous child"
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Box sx={{ flex: 1 }} />
-            <IconButton 
-              onClick={handleNextChild} 
-              size="large" 
-              sx={{ color: 'primary.main' }}
-              aria-label="Next child"
-            >
-              <ArrowForwardIcon />
-            </IconButton>
-          </Box>
-          <ChildPage
-            child={currentChild}
-            tasks={sortedTasks}
-            onTaskToggle={handleTaskToggle}
-          />
-        </Container>
-      </Box>
-    </ThemeProvider>
+    <div className="app-container" style={{ 
+      backgroundImage: CHILD_BACKGROUNDS[currentChild.id]
+    }}>
+      <div className="main-container">
+        <nav className="nav-bar">
+          <button 
+            onClick={handlePrevChild} 
+            className="nav-button"
+            aria-label="Previous child"
+          >
+            ←
+          </button>
+          <div className="nav-spacer" />
+          <button 
+            onClick={handleNextChild} 
+            className="nav-button"
+            aria-label="Next child"
+          >
+            →
+          </button>
+        </nav>
+        <ChildPage
+          child={currentChild}
+          tasks={sortedTasks}
+          onTaskToggle={handleTaskToggle}
+        />
+      </div>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
-import { Box, IconButton } from '@mui/material';
 import { Task } from '../types';
+import './TaskList.css';
 
 interface TaskListProps {
   tasks: Task[];
@@ -9,38 +9,20 @@ interface TaskListProps {
 
 export default function TaskList({ tasks, completedTasks, onTaskToggle }: TaskListProps) {
   return (
-    <Box 
-      role="list"
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-        gap: 2,
-        p: 2,
-        overflowY: 'auto',
-      }}
-    >
+    <div className="task-list" role="list">
       {tasks.map((task) => (
-        <IconButton
+        <button
           key={task.id}
           onClick={() => onTaskToggle(task.id)}
+          className={`task-button ${completedTasks.includes(task.id) ? 'completed' : ''}`}
           aria-label={task.name}
           aria-pressed={completedTasks.includes(task.id)}
-          sx={{
-            width: 80,
-            height: 80,
-            fontSize: '2rem',
-            borderRadius: 2,
-            backgroundColor: completedTasks.includes(task.id) ? 'primary.main' : 'background.paper',
-            color: completedTasks.includes(task.id) ? 'primary.contrastText' : 'text.primary',
-            boxShadow: 1,
-            '&:hover': {
-              backgroundColor: completedTasks.includes(task.id) ? 'primary.dark' : 'action.hover',
-            },
-          }}
         >
-          {task.emoji}
-        </IconButton>
+          <span className="task-emoji" role="img" aria-label={task.name}>
+            {task.emoji}
+          </span>
+        </button>
       ))}
-    </Box>
+    </div>
   );
 } 

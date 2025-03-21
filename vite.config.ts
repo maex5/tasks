@@ -1,38 +1,16 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 
 /**
  * Vite configuration for the Kids Tasks app.
- * Includes PWA support and environment variable handling.
+ * Includes environment variable handling.
  */
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
     plugins: [
-      react(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        manifest: {
-          name: 'Kids Tasks',
-          short_name: 'Kids Tasks',
-          description: 'Track your kids daily tasks with emoji progression',
-          theme_color: '#ffffff',
-          icons: [
-            {
-              src: '/tasks/pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ],
-          start_url: '/tasks/',
-          scope: '/tasks/',
-          display: 'standalone',
-          background_color: '#ffffff'
-        }
-      })
+      react()
     ],
     base: '/tasks/', // This is for GitHub Pages
     build: {

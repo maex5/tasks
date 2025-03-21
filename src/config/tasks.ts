@@ -4,7 +4,31 @@ export const CHILD_TASK_SET_MAP: Record<ChildId, TaskSetId> = {
   alex: 'alex_tasks',
   cecci: 'cecci_tasks',
   vicka: 'vicka_tasks',
-};
+} as const;
+
+export const CHILD_BACKGROUNDS: Record<ChildId, string> = {
+  alex: `
+    radial-gradient(circle at 20% 20%, #FFA500 0%, transparent 45%),
+    radial-gradient(circle at 80% 30%, #0066FF 0%, transparent 50%),
+    radial-gradient(circle at 40% 70%, #FFA500 0%, transparent 45%),
+    radial-gradient(circle at 75% 80%, #0066FF 0%, transparent 40%),
+    linear-gradient(45deg, rgba(255, 165, 0, 0.2), rgba(0, 102, 255, 0.2))
+  `,
+  cecci: `
+    radial-gradient(circle at 25% 25%, #fbd3e9 0%, transparent 45%),
+    radial-gradient(circle at 75% 35%, #bb377d 0%, transparent 50%),
+    radial-gradient(circle at 35% 65%, #fbd3e9 0%, transparent 45%),
+    radial-gradient(circle at 70% 85%, #bb377d 0%, transparent 40%),
+    linear-gradient(45deg, rgba(251, 211, 233, 0.2), rgba(187, 55, 125, 0.2))
+  `,
+  vicka: `
+    radial-gradient(circle at 30% 30%, #ff4e50 0%, transparent 45%),
+    radial-gradient(circle at 70% 25%, #f9d423 0%, transparent 50%),
+    radial-gradient(circle at 45% 75%, #ff4e50 0%, transparent 45%),
+    radial-gradient(circle at 80% 70%, #f9d423 0%, transparent 40%),
+    linear-gradient(45deg, rgba(255, 78, 80, 0.2), rgba(249, 212, 35, 0.2))
+  `,
+} as const;
 
 export const DEFAULT_STATE: AppState = {
   taskSets: {
@@ -48,21 +72,21 @@ export const DEFAULT_STATE: AppState = {
       name: 'Alex',
       taskSetId: 'alex_tasks',
       completedTasks: [],
-      backgroundColor: '#FFE5F5'
+      backgroundColor: 'linear-gradient(to bottom right, #FFA500, #0066FF)'
     },
     cecci: {
       id: 'cecci',
       name: 'Cecci',
       taskSetId: 'cecci_tasks',
       completedTasks: [],
-      backgroundColor: '#E5FFF0'
+      backgroundColor: 'linear-gradient(to bottom right, #fbd3e9, #bb377d)'
     },
     vicka: {
       id: 'vicka',
       name: 'Vicka',
       taskSetId: 'vicka_tasks',
       completedTasks: [],
-      backgroundColor: '#E5E5FF'
+      backgroundColor: 'linear-gradient(to bottom right, #ff4e50, #f9d423)'
     }
   },
   lastReset: null
