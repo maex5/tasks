@@ -40,29 +40,33 @@ export const DEFAULT_STATE: AppState = {
         brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
         do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
         take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
-        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 5 },
+        clean_room: { id: 'clean_room', name: '🧹', emoji: '🧹', order: 5 },
+        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 6 },
       }
     },
     vicka_tasks: {
       id: 'vicka_tasks',
       name: 'Vicka\'s Tasks',
       tasks: {
-        clean_room: { id: 'clean_room', name: '🧹', emoji: '🧹', order: 1 },
-        practice_piano: { id: 'practice_piano', name: '🎹', emoji: '🎹', order: 2 },
-        read_book: { id: 'read_book', name: '📖', emoji: '📖', order: 3 },
-        water_plants: { id: 'water_plants', name: '🪴', emoji: '🪴', order: 4 },
-        feed_fish: { id: 'feed_fish', name: '🐠', emoji: '🐠', order: 5 }
+        make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
+        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
+        do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
+        take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
+        clean_room: { id: 'clean_room', name: '🧹', emoji: '🧹', order: 5 },
+        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 6 },
       }
     },
     cecci_tasks: {
       id: 'cecci_tasks',
       name: 'Cecci\'s Tasks',
       tasks: {
-        draw_picture: { id: 'draw_picture', name: '🎨', emoji: '🎨', order: 1 },
-        dance_practice: { id: 'dance_practice', name: '💃', emoji: '💃', order: 2 },
-        help_cooking: { id: 'help_cooking', name: '👩‍🍳', emoji: '👩‍🍳', order: 3 },
-        tidy_toys: { id: 'tidy_toys', name: '🧸', emoji: '🧸', order: 4 },
-        feed_cat: { id: 'feed_cat', name: '🐱', emoji: '🐱', order: 5 }
+        make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
+        brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
+        clean_room: { id: 'clean_room', name: '🧹', emoji: '🧹', order: 3 },
+        draw_picture: { id: 'draw_picture', name: '🎨✏️', emoji: '🎨✏️', order: 4 },
+        play: { id: 'play', name: '🧸🪁', emoji: '🧸🪁', order: 5 },
+        go_out: { id: 'go_out', name: '🏃🌳', emoji: '🏃🌳', order: 6 },
+        brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 7 },
       }
     }
   },

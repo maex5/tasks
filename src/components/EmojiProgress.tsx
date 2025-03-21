@@ -1,6 +1,5 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useDeviceOrientation } from '../hooks/useDeviceOrientation';
-import { useEffect } from 'react';
 import './EmojiProgress.css';
 
 interface EmojiProgressProps {
@@ -9,9 +8,8 @@ interface EmojiProgressProps {
 
 const SPRING_ANIMATION = {
   type: 'spring',
-  stiffness: 500,
-  damping: 30,
-  duration: 0.5
+  stiffness: 300,
+  damping: 20,
 } as const;
 
 const EMOJI_THRESHOLDS = [
@@ -28,42 +26,53 @@ function EmojiProgress({ progress }: EmojiProgressProps) {
     ({ threshold }) => progress >= threshold
   ) || EMOJI_THRESHOLDS[EMOJI_THRESHOLDS.length - 1];
 
-  const { beta, gamma } = useDeviceOrientation();
+  const { orientation, requestPermission, permissionState } = useDeviceOrientation();
 
-  // Create motion values for the tilts
-  const tiltX = useMotionValue(0);
-  const tiltY = useMotionValue(0);
-
-  // Transform the tilt values to rotation angles
-  const rotateX = useTransform(tiltY, [-1, 1], [-30, 30]);
-  const rotateY = useTransform(tiltX, [-1, 1], [-30, 30]);
-
-  // Update motion values when orientation changes
-  useEffect(() => {
-    if (beta !== null && gamma !== null) {
-      tiltX.set(gamma / 90); // gamma ranges from -90 to 90
-      tiltY.set(beta / 180); // beta ranges from -180 to 180
-    }
-  }, [beta, gamma, tiltX, tiltY]);
+  // Calculate rotation values with increased range
+  const rotateX = orientation.beta ? Math.max(-45, Math.min(45, orientation.beta / 2)) : 0;
+  const rotateY = orientation.gamma ? Math.max(-45, Math.min(45, orientation.gamma / 2)) : 0;
 
   return (
     <div className="emoji-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      {permissionState === 'prompt' && (
+        <button 
+          onClick={requestPermission}
+          className="permission-button"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            padding: '12px 24px',
+            fontSize: '1rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            zIndex: 10,
+          }}
+        >
+          Enable 3D Motion
+        </button>
+      )}
       <motion.div
         key={emoji}
         className="emoji"
-        initial={{ scale: 0.5, opacity: 0, rotate: -180 }}
+        initial={{ scale: 0.5, opacity: 0 }}
         animate={{ 
           scale: 1, 
-          opacity: 1, 
-          rotate: 0
+          opacity: 1,
+          rotateX: rotateX,
+          rotateY: rotateY,
         }}
-        exit={{ scale: 0.5, opacity: 0, rotate: 180 }}
         transition={SPRING_ANIMATION}
         style={{
-          rotateX,
-          rotateY,
+          fontSize: '8rem',
           transformStyle: 'preserve-3d',
-          perspective: 1000
+          perspective: 1000,
+          transformOrigin: 'center center',
         }}
         aria-label={`${label} - ${progress}% complete`}
       >
