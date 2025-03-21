@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { useDeviceOrientation } from '../hooks/useDeviceOrientation';
 import './EmojiProgress.css';
 
 interface EmojiProgressProps {
@@ -26,37 +25,8 @@ function EmojiProgress({ progress }: EmojiProgressProps) {
     ({ threshold }) => progress >= threshold
   ) || EMOJI_THRESHOLDS[EMOJI_THRESHOLDS.length - 1];
 
-  const { orientation, requestPermission, permissionState } = useDeviceOrientation();
-
-  // Calculate rotation values with increased range
-  const rotateX = orientation.beta ? Math.max(-45, Math.min(45, orientation.beta / 2)) : 0;
-  const rotateY = orientation.gamma ? Math.max(-45, Math.min(45, orientation.gamma / 2)) : 0;
-
   return (
     <div className="emoji-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-      {permissionState === 'prompt' && (
-        <button 
-          onClick={requestPermission}
-          className="permission-button"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '12px 24px',
-            fontSize: '1rem',
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            zIndex: 10,
-          }}
-        >
-          Enable 3D Motion
-        </button>
-      )}
       <motion.div
         key={emoji}
         className="emoji"
@@ -64,14 +34,24 @@ function EmojiProgress({ progress }: EmojiProgressProps) {
         animate={{ 
           scale: 1, 
           opacity: 1,
-          rotateX: rotateX,
-          rotateY: rotateY,
+          rotate: [0, 5, 0, -5, 0],
+          y: [0, -5, 0, -5, 0]
         }}
-        transition={SPRING_ANIMATION}
+        transition={{
+          ...SPRING_ANIMATION,
+          rotate: {
+            duration: 4,
+            repeat: Infinity,
+            ease: "linear"
+          },
+          y: {
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }
+        }}
         style={{
           fontSize: '8rem',
-          transformStyle: 'preserve-3d',
-          perspective: 1000,
           transformOrigin: 'center center',
         }}
         aria-label={`${label} - ${progress}% complete`}
