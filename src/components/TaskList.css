@@ -5,6 +5,8 @@
   padding: 1rem;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  justify-content: center;
+  justify-items: center;
 }
 
 .task-list::-webkit-scrollbar {

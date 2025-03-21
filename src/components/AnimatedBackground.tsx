@@ -25,7 +25,6 @@ function AnimatedBackground({ colors: [color1, color2], className = '' }: Animat
         preserveAspectRatio="xMidYMid slice"
         width="100%"
         height="100%"
-        style={{ willChange: 'transform' }}
       >
         <defs>
           <filter id="blur" colorInterpolationFilters="sRGB">
@@ -48,34 +47,25 @@ function AnimatedBackground({ colors: [color1, color2], className = '' }: Animat
         {/* Light colored background */}
         <rect x="-100" y="-100" width="300" height="300" fill={backgroundColor} />
 
-        {/* Optimized animated shapes */}
-        <g style={{ isolation: 'isolate' }}>
-          <circle
-            className="blob blob1"
-            cx="-20"
-            cy="-20"
-            r="90"
+        {/* Static organic shapes */}
+        <g>
+          {/* Large top-left blob */}
+          <path
+            d="M -150,-150 C -80,-180 0,-160 40,-100 C 80,-40 60,20 0,40 C -60,60 -140,40 -180,-20 C -220,-80 -220,-120 -150,-150"
             fill="url(#gradient1)"
             filter="url(#blur)"
-            style={{ willChange: 'transform' }}
           />
-          <circle
-            className="blob blob2"
-            cx="120"
-            cy="120"
-            r="100"
+          {/* Large bottom-right blob */}
+          <path
+            d="M 100,80 C 160,40 220,60 260,120 C 300,180 280,240 220,260 C 160,280 80,260 40,200 C 0,140 40,120 100,80"
             fill="url(#gradient2)"
             filter="url(#blur)"
-            style={{ willChange: 'transform' }}
           />
-          <circle
-            className="blob blob3"
-            cx="50"
-            cy="50"
-            r="80"
+          {/* Center blob */}
+          <path
+            d="M -20,-20 C 40,-60 100,-40 140,0 C 180,40 160,100 100,120 C 40,140 -20,120 -60,60 C -100,0 -80,-60 -20,-20"
             fill="url(#gradient3)"
             filter="url(#blur)"
-            style={{ willChange: 'transform' }}
           />
         </g>
       </svg>
