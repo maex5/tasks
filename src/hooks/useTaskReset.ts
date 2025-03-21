@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AppState } from '../types';
+import { AppState, Child, ChildId, isValidChildId } from '../types';
 import { firebaseService } from '../services/firebase';
 
 // Update this key to be part of the firebase state
@@ -32,15 +32,25 @@ export function useTaskReset(
             lastResetDate.getDate() !== finnishTime.getDate() ||
             finnishTime.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
           
+          // Create a new children object with reset tasks
+          const resetChildren = Object.entries(currentState.children).reduce((acc, [id, child]) => {
+            if (isValidChildId(id)) {
+              // Ensure child has the correct type
+              const typedChild: Child = {
+                ...child,
+                id: id as ChildId,
+                taskSetId: child.taskSetId as `${ChildId}_tasks`,
+                completedTasks: []
+              };
+              acc[id] = typedChild;
+            }
+            return acc;
+          }, {} as Record<ChildId, Child>);
+
           const resetState: AppState = {
             ...currentState,
             lastReset: now.toISOString(),
-            children: Object.fromEntries(
-              Object.entries(currentState.children).map(([id, child]) => [
-                id,
-                { ...child, completedTasks: [] }
-              ])
-            )
+            children: resetChildren
           };
           
           await updateState(resetState);

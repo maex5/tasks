@@ -1,3 +1,6 @@
+export type ChildId = 'alex' | 'cecci' | 'vicka';
+export type TaskSetId = `${ChildId}_tasks`;
+
 export interface Task {
   id: string;
   name: string;
@@ -6,26 +9,24 @@ export interface Task {
 }
 
 export interface TaskSet {
-  id: string;
+  id: TaskSetId;
   name: string;
   tasks: Record<string, Task>;
 }
 
 export interface Child {
-  id: string;
+  id: ChildId;
   name: string;
-  taskSetId: string;
+  taskSetId: TaskSetId;
   completedTasks: string[];
   backgroundColor: string;
 }
 
 export interface AppState {
-  taskSets: Record<string, TaskSet>;
-  children: Record<string, Child>;
+  taskSets: Record<TaskSetId, TaskSet>;
+  children: Record<ChildId, Child>;
   lastReset: string | null;  // ISO string timestamp of last task reset
 }
-
-export type EmojiState = '😭' | '😢' | '😐' | '🙂' | '😃' | '🤩';
 
 export interface TaskButtonProps {
   task: Task;
@@ -34,12 +35,21 @@ export interface TaskButtonProps {
 }
 
 export interface EmojiProgressProps {
-  completedTasks: string[];
-  totalTasks: number;
+  progress: number;
 }
 
 export interface ChildPageProps {
   child: Child;
   tasks: Task[];
   onTaskToggle: (childId: string, taskId: string) => void;
+}
+
+export type EmojiState = '🤩' | '😃' | '🙂' | '😐' | '😢' | '😭';
+
+export function isValidChildId(id: string): id is ChildId {
+  return ['alex', 'cecci', 'vicka'].includes(id);
+}
+
+export function isValidTaskSetId(id: string): id is TaskSetId {
+  return id.endsWith('_tasks') && isValidChildId(id.replace('_tasks', ''));
 } 

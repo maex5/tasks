@@ -2,7 +2,7 @@ import { Typography, Container } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import confetti from 'canvas-confetti';
 import { useEffect, useRef, useCallback, memo } from 'react';
-import { Child, Task } from '../types/state';
+import { Child, Task, ChildId } from '../types';
 import TaskList from './TaskList';
 import EmojiProgress from './EmojiProgress';
 
@@ -31,7 +31,7 @@ const ChildName = styled(Typography)(({ theme }) => ({
 interface ChildPageProps {
   child: Child;
   tasks: Task[];
-  onTaskToggle: (childId: string, taskId: string) => void;
+  onTaskToggle: (childId: ChildId, taskId: string) => void;
 }
 
 /**

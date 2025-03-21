@@ -7,8 +7,11 @@ import ChildPage from './components/ChildPage';
 import { useFirebaseState } from './hooks/useFirebaseState';
 import { useTaskReset } from './hooks/useTaskReset';
 import { theme } from './theme';
+import { CHILD_TASK_SET_MAP } from './config/tasks';
+import { ChildId, isValidChildId, Child, Task } from './types';
 
 const CURRENT_CHILD_KEY = 'current-child';
+const CHILD_IDS = ['alex', 'cecci', 'vicka'] as const;
 
 function App() {
   const { 
@@ -22,22 +25,20 @@ function App() {
 
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
     const savedChildId = localStorage.getItem(CURRENT_CHILD_KEY);
-    if (!savedChildId || !state?.children) return 0;
+    if (!savedChildId || !isValidChildId(savedChildId)) return 0;
     
-    const index = Object.values(state.children).findIndex(child => child.id === savedChildId);
+    const index = CHILD_IDS.indexOf(savedChildId as ChildId);
     return index >= 0 ? index : 0;
   });
 
   useTaskReset(state, updateState);
 
   useEffect(() => {
-    if (!state?.children) return;
-    const children = Object.values(state.children);
-    const currentChild = children[currentChildIndex];
-    if (currentChild) {
-      localStorage.setItem(CURRENT_CHILD_KEY, currentChild.id);
+    const currentChildId = CHILD_IDS[currentChildIndex];
+    if (currentChildId) {
+      localStorage.setItem(CURRENT_CHILD_KEY, currentChildId);
     }
-  }, [currentChildIndex, state]);
+  }, [currentChildIndex]);
 
   if (isLoading || !state?.children || !state?.taskSets) {
     return (
@@ -68,9 +69,9 @@ function App() {
     );
   }
 
-  const children = Object.values(state.children);
+  const children = Object.values(state.children) as Child[];
   const currentChild = children[currentChildIndex] || children[0];
-  const taskSetId = currentChild.taskSetId || 'all_tasks';
+  const taskSetId = CHILD_TASK_SET_MAP[currentChild.id];
   const currentTaskSet = state.taskSets[taskSetId];
   
   console.log('Current child and tasks:', {
@@ -80,8 +81,8 @@ function App() {
     taskSetName: currentTaskSet?.name || 'Unknown'
   });
   
-  const handleTaskToggle = async (childId: string, taskId: string) => {
-    if (!state || !isOnline) return;
+  const handleTaskToggle = async (childId: ChildId, taskId: string) => {
+    if (!state || !isOnline || !isValidChildId(childId)) return;
 
     const child = state.children[childId];
     if (!child) {
@@ -91,7 +92,7 @@ function App() {
 
     const currentCompletedTasks = Array.isArray(child.completedTasks) ? child.completedTasks : [];
     const completedTasks = currentCompletedTasks.includes(taskId)
-      ? currentCompletedTasks.filter(id => id !== taskId)
+      ? currentCompletedTasks.filter((id: string) => id !== taskId)
       : [...currentCompletedTasks, taskId];
 
     try {
@@ -102,39 +103,28 @@ function App() {
   };
 
   if (!currentTaskSet?.tasks) {
-    console.error('Task set not found:', taskSetId);
-    // Fallback to default task set
-    const defaultTaskSet = state.taskSets['all_tasks'];
-    if (!defaultTaskSet?.tasks) {
-      return (
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Box sx={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '100vh',
-            bgcolor: 'background.default'
-          }}>
-            <Alert severity="error" sx={{ maxWidth: 400 }}>
-              No task sets available. Please check your configuration.
-            </Alert>
-          </Box>
-        </ThemeProvider>
-      );
-    }
-    // Use default task set as fallback
-    return <ChildPage
-      child={currentChild}
-      tasks={Object.values(defaultTaskSet.tasks).sort((a, b) => a.order - b.order)}
-      onTaskToggle={handleTaskToggle}
-    />;
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          bgcolor: 'background.default'
+        }}>
+          <Alert severity="error" sx={{ maxWidth: 400 }}>
+            No task set found for {currentChild.name}. Please check your configuration.
+          </Alert>
+        </Box>
+      </ThemeProvider>
+    );
   }
 
   const sortedTasks = Object.values(currentTaskSet.tasks)
-    .sort((a, b) => a.order - b.order);
+    .sort((a: Task, b: Task) => a.order - b.order);
 
   const handleNextChild = () => setCurrentChildIndex((prev) => (prev + 1) % children.length);
   const handlePrevChild = () => setCurrentChildIndex((prev) => (prev - 1 + children.length) % children.length);
@@ -176,14 +166,7 @@ function App() {
             >
               <ArrowBackIcon />
             </IconButton>
-            <Box sx={{ 
-              flex: 1,
-              textAlign: 'center',
-              typography: 'h6',
-              color: 'primary.main'
-            }}>
-              {currentTaskSet.name}
-            </Box>
+            <Box sx={{ flex: 1 }} />
             <IconButton 
               onClick={handleNextChild} 
               size="large" 

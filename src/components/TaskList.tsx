@@ -1,5 +1,5 @@
 import { Box, IconButton } from '@mui/material';
-import { Task } from '../types/state';
+import { Task } from '../types';
 
 interface TaskListProps {
   tasks: Task[];

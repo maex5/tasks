@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { firebaseService } from '../services/firebase';
-import { AppState, Child, ChildId } from '../types/state';
+import { AppState, Child, ChildId } from '../types';
 import { DEFAULT_STATE } from '../config/tasks';
 
 interface UseFirebaseStateResult {

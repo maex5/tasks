@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, onDisconnect, get } from 'firebase/database';
-import { AppState, TaskSet, isValidChildId, isValidTaskSetId, ChildId, TaskSetId } from '../types/state';
+import { AppState, TaskSet, isValidChildId, isValidTaskSetId, ChildId, TaskSetId } from '../types';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

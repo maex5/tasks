@@ -1,4 +1,4 @@
-import { AppState, ChildId, TaskSetId } from '../types/state';
+import { AppState, ChildId, TaskSetId } from '../types';
 
 export const CHILD_TASK_SET_MAP: Record<ChildId, TaskSetId> = {
   alex: 'alex_tasks',
