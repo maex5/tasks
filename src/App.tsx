@@ -11,8 +11,8 @@ const CURRENT_CHILD_KEY = 'current-child';
 const CHILD_IDS = ['alex', 'cecci', 'vicka'] as const;
 
 const CHILD_COLORS: Record<ChildId, [string, string]> = {
-  alex: ['#E6F3FF', '#0047AB'],
-  cecci: ['#FFF0F5', '#FF69B4'],
+  alex: ['#4B9FE1', '#1E56B0'],
+  cecci: ['#FF9ECD', '#FF4D94'],
   vicka: ['#ff4e50', '#f9d423'],
 } as const;
 
