@@ -71,17 +71,26 @@
 
 /* Navigation buttons */
 .nav-button {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
   color: white;
   font-size: 2rem;
   cursor: pointer;
-  padding: 0.5rem;
-  transition: opacity 0.2s;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s;
+  margin: 0 0.5rem;
 }
 
 .nav-button:hover {
-  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-button:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0.95);
 }
 
 .nav-spacer {
