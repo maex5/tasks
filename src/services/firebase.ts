@@ -60,21 +60,41 @@ class FirebaseService {
   private validateState(state: AppState | null): AppState | null {
     if (!state) return null;
 
-    // Ensure all children have completedTasks array
+    // Ensure all children have completedTasks array and taskSetId
     const validatedChildren = Object.fromEntries(
       Object.entries(state.children).map(([id, child]) => [
         id,
         {
           ...child,
+          taskSetId: child.taskSetId || 'all_tasks', // Default to all_tasks if not set
           completedTasks: Array.isArray(child.completedTasks) ? child.completedTasks : []
         }
       ])
     );
 
+    // Ensure taskSets exist with at least the default set
+    const taskSets = {
+      all_tasks: {
+        id: 'all_tasks',
+        name: 'All Tasks',
+        tasks: {
+          make_bed: { id: 'make_bed', name: '🛏️', emoji: '🛏️', order: 1 },
+          brush_teeth_morning: { id: 'brush_teeth_morning', name: '🪥☀️', emoji: '🪥☀️', order: 2 },
+          do_homework: { id: 'do_homework', name: '📚✏️', emoji: '📚✏️', order: 3 },
+          take_dog_out: { id: 'take_dog_out', name: '🐶', emoji: '🐶', order: 4 },
+          brush_teeth_evening: { id: 'brush_teeth_evening', name: '🪥🌙', emoji: '🪥🌙', order: 5 },
+        }
+      },
+      ...state.taskSets
+    };
+
+    // Use type assertion to resolve type error
     return {
       ...state,
-      children: validatedChildren
-    };
+      lastReset: (state as any).lastReset || null,
+      children: validatedChildren,
+      taskSets
+    } as AppState;
   }
 
   public async getState(): Promise<AppState | null> {

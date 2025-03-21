@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { AppState } from '../types';
+import { firebaseService } from '../services/firebase';
 
-const LAST_RESET_KEY = 'last-reset';
-
+// Update this key to be part of the firebase state
 export function useTaskReset(
   state: AppState | null,
   updateState: (newState: AppState) => Promise<void>
@@ -11,23 +11,30 @@ export function useTaskReset(
     if (!state?.children) return;
 
     const checkAndResetTasks = async () => {
-      const now = new Date();
-      const lastReset = localStorage.getItem(LAST_RESET_KEY);
-      const lastResetDate = lastReset ? new Date(lastReset) : null;
-      
-      // Reset if:
-      // 1. No last reset
-      // 2. Last reset was on a different day
-      // 3. Last reset was more than 24 hours ago
-      if (!lastReset || 
-          !lastResetDate || 
-          lastResetDate.getDate() !== now.getDate() ||
-          now.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
-        try {
+      try {
+        // Get the freshest state directly from Firebase
+        const currentState = await firebaseService.getState();
+        if (!currentState) return;
+        
+        const now = new Date();
+        // Check if lastReset exists in the state
+        const lastReset = currentState.lastReset;
+        const lastResetDate = lastReset ? new Date(lastReset) : null;
+        
+        // Reset if:
+        // 1. No last reset
+        // 2. Last reset was on a different day
+        // 3. Last reset was more than 24 hours ago
+        if (!lastReset || 
+            !lastResetDate || 
+            lastResetDate.getDate() !== now.getDate() ||
+            now.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
+          
           const resetState: AppState = {
-            ...state,
+            ...currentState,
+            lastReset: now.toISOString(),
             children: Object.fromEntries(
-              Object.entries(state.children).map(([id, child]) => [
+              Object.entries(currentState.children).map(([id, child]) => [
                 id,
                 { ...child, completedTasks: [] }
               ])
@@ -35,18 +42,15 @@ export function useTaskReset(
           };
           
           await updateState(resetState);
-          localStorage.setItem(LAST_RESET_KEY, now.toISOString());
-        } catch (error) {
-          console.error('Error resetting tasks:', error);
         }
+      } catch (error) {
+        console.error('Error resetting tasks:', error);
       }
     };
 
-    // Check immediately
-    checkAndResetTasks();
-
-    // Then check every minute
-    const interval = setInterval(checkAndResetTasks, 60000);
+    // Check every 5 minutes, not immediately on every device load
+    // This prevents race conditions when multiple devices are opened at the same time
+    const interval = setInterval(checkAndResetTasks, 5 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, [state, updateState]);

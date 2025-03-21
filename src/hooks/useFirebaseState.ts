@@ -54,9 +54,11 @@ export function useFirebaseState(): UseFirebaseStateResult {
           });
 
           hasInitialized.current = true;
+          // Only set loading to false after we have both state and connection status
           setIsLoading(false);
         }
       } catch (err) {
+        console.error('Firebase initialization error:', err);
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Failed to initialize Firebase state'));
           setIsLoading(false);
@@ -152,27 +154,28 @@ function getDefaultState(): AppState {
       }
     },
     children: {
-      alex: { 
-        id: 'alex', 
-        name: 'Alex', 
+      alex: {
+        id: 'alex',
+        name: 'Alex',
         taskSetId: 'all_tasks',
-        completedTasks: [], 
-        backgroundColor: '#FFE5F5' 
+        completedTasks: [],
+        backgroundColor: '#FFE5F5'
       },
-      cecci: { 
-        id: 'cecci', 
+      cecci: {
+        id: 'cecci',
         name: 'Cecci',
-        taskSetId: 'basic_tasks', 
-        completedTasks: [], 
-        backgroundColor: '#E5FFF0' 
+        taskSetId: 'basic_tasks',
+        completedTasks: [],
+        backgroundColor: '#E5FFF0'
       },
-      vicka: { 
-        id: 'vicka', 
+      vicka: {
+        id: 'vicka',
         name: 'Vicka',
-        taskSetId: 'all_tasks', 
-        completedTasks: [], 
-        backgroundColor: '#E5E5FF' 
-      },
-    }
+        taskSetId: 'all_tasks',
+        completedTasks: [],
+        backgroundColor: '#E5E5FF'
+      }
+    },
+    lastReset: null
   };
 } 

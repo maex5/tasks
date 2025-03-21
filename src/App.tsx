@@ -16,7 +16,8 @@ function App() {
     isOnline, 
     isLoading, 
     error, 
-    updateChild 
+    updateChild,
+    updateState
   } = useFirebaseState();
 
   const [currentChildIndex, setCurrentChildIndex] = useState(() => {
@@ -27,11 +28,7 @@ function App() {
     return index >= 0 ? index : 0;
   });
 
-  useTaskReset(state, async () => {
-    if (!state?.children) return;
-    const firstChildId = Object.keys(state.children)[0];
-    await updateChild(firstChildId, { completedTasks: [] });
-  });
+  useTaskReset(state, updateState);
 
   useEffect(() => {
     if (!state?.children) return;
@@ -58,7 +55,7 @@ function App() {
           <CircularProgress />
           {!isOnline && (
             <Alert severity="warning" sx={{ maxWidth: 400 }}>
-              Connecting to server...
+              Connecting to database...
             </Alert>
           )}
           {error && (
@@ -73,13 +70,9 @@ function App() {
 
   const children = Object.values(state.children);
   const currentChild = children[currentChildIndex] || children[0];
-  const currentTaskSet = state.taskSets[currentChild.taskSetId];
+  const taskSetId = currentChild.taskSetId || 'all_tasks';
+  const currentTaskSet = state.taskSets[taskSetId];
   
-  if (!currentTaskSet?.tasks) {
-    console.error('Task set not found:', currentChild.taskSetId);
-    return null;
-  }
-
   const handleTaskToggle = async (childId: string, taskId: string) => {
     if (!state || !isOnline) return;
 
@@ -100,6 +93,38 @@ function App() {
       console.error('Error toggling task:', error);
     }
   };
+
+  if (!currentTaskSet?.tasks) {
+    console.error('Task set not found:', taskSetId);
+    // Fallback to default task set
+    const defaultTaskSet = state.taskSets['all_tasks'];
+    if (!defaultTaskSet?.tasks) {
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: '100vh',
+            bgcolor: 'background.default'
+          }}>
+            <Alert severity="error" sx={{ maxWidth: 400 }}>
+              No task sets available. Please check your configuration.
+            </Alert>
+          </Box>
+        </ThemeProvider>
+      );
+    }
+    // Use default task set as fallback
+    return <ChildPage
+      child={currentChild}
+      tasks={Object.values(defaultTaskSet.tasks).sort((a, b) => a.order - b.order)}
+      onTaskToggle={handleTaskToggle}
+    />;
+  }
 
   const sortedTasks = Object.values(currentTaskSet.tasks)
     .sort((a, b) => a.order - b.order);
