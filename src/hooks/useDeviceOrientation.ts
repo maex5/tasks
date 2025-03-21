@@ -1,56 +1,90 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface DeviceOrientation {
-  beta: number | null;  // Front-to-back tilt in degrees, ranging from -180 to 180
-  gamma: number | null; // Left-to-right tilt in degrees, ranging from -90 to 90
+  alpha: number | null;
+  beta: number | null;
+  gamma: number | null;
 }
 
-type DeviceOrientationEventiOS = {
-  requestPermission: () => Promise<'granted' | 'denied' | 'default'>;
-};
+interface UseDeviceOrientationResult {
+  orientation: DeviceOrientation;
+  requestPermission: () => Promise<boolean>;
+  permissionState: 'granted' | 'denied' | 'prompt';
+}
 
-export function useDeviceOrientation() {
+// Add iOS-specific types
+interface DeviceOrientationEventiOS extends DeviceOrientationEvent {
+  requestPermission?: () => Promise<'granted' | 'denied' | 'prompt'>;
+}
+
+type DeviceOrientationStatic = {
+  new(type: string, eventInitDict?: DeviceOrientationEventInit): DeviceOrientationEvent;
+  requestPermission?: () => Promise<'granted' | 'denied' | 'prompt'>;
+}
+
+export function useDeviceOrientation(): UseDeviceOrientationResult {
   const [orientation, setOrientation] = useState<DeviceOrientation>({
+    alpha: null,
     beta: null,
-    gamma: null,
+    gamma: null
   });
+  const [permissionState, setPermissionState] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+
+  const handleOrientation = useCallback((event: DeviceOrientationEvent) => {
+    setOrientation({
+      alpha: event.alpha,
+      beta: event.beta,
+      gamma: event.gamma
+    });
+  }, []);
+
+  const requestPermission = useCallback(async () => {
+    const DeviceOrientationEvent = window.DeviceOrientationEvent as unknown as DeviceOrientationStatic;
+    
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        setPermissionState(permission);
+        
+        if (permission === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error('Error requesting device orientation permission:', err);
+        setPermissionState('denied');
+        return false;
+      }
+    } else {
+      // For non-iOS devices or when permission is not required
+      window.addEventListener('deviceorientation', handleOrientation);
+      setPermissionState('granted');
+      return true;
+    }
+  }, [handleOrientation]);
 
   useEffect(() => {
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      if (event.beta !== null && event.gamma !== null) {
-        setOrientation({
-          beta: event.beta,
-          gamma: event.gamma,
-        });
-      }
-    };
-
-    const setupOrientation = async () => {
-      // Check if we need to request permission (iOS)
-      const requestPermission = async () => {
-        if (typeof (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS).requestPermission === 'function') {
-          const permission = await (DeviceOrientationEvent as unknown as DeviceOrientationEventiOS).requestPermission();
-          return permission === 'granted';
-        }
-        return true; // Non-iOS devices don't need permission
-      };
-
-      try {
-        const permissionGranted = await requestPermission();
-        if (permissionGranted) {
-          window.addEventListener('deviceorientation', handleOrientation);
-        }
-      } catch (error) {
-        console.error('Error setting up device orientation:', error);
-      }
-    };
-
-    setupOrientation();
+    const DeviceOrientationEvent = window.DeviceOrientationEvent as unknown as DeviceOrientationStatic;
+    
+    // Check if we need to request permission (iOS 13+)
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // We'll wait for user interaction to request permission
+      return;
+    } else {
+      // For non-iOS devices or older iOS versions
+      window.addEventListener('deviceorientation', handleOrientation);
+      setPermissionState('granted');
+    }
 
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation);
     };
-  }, []);
+  }, [handleOrientation]);
 
-  return orientation;
+  return {
+    orientation,
+    requestPermission,
+    permissionState
+  };
 } 
