@@ -1,10 +1,10 @@
-import { styled } from '@mui/material/styles';
 import { Box, Typography, Container } from '@mui/material';
-import { ChildPageProps } from '../types';
-import TaskButton from './TaskButton';
-import EmojiProgress from './EmojiProgress';
+import { styled } from '@mui/material/styles';
 import confetti from 'canvas-confetti';
 import { useEffect, useRef, useCallback, memo } from 'react';
+import { Child, Task } from '../types/state';
+import TaskList from './TaskList';
+import EmojiProgress from './EmojiProgress';
 
 const PageContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(0.5),
@@ -15,28 +15,6 @@ const PageContainer = styled(Container)(({ theme }) => ({
   height: '100%',
   maxHeight: '100%',
   overflow: 'hidden',
-}));
-
-const TaskList = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  gap: theme.spacing(2),
-  flex: 1,
-  overflow: 'auto',
-  padding: theme.spacing(1),
-  justifyContent: 'center',
-  alignContent: 'flex-start',
-  '&::-webkit-scrollbar': {
-    width: '4px',
-  },
-  '&::-webkit-scrollbar-track': {
-    background: 'transparent',
-  },
-  '&::-webkit-scrollbar-thumb': {
-    background: theme.palette.primary.main,
-    borderRadius: '2px',
-  },
 }));
 
 const ChildName = styled(Typography)(({ theme }) => ({
@@ -50,8 +28,11 @@ const ChildName = styled(Typography)(({ theme }) => ({
   lineHeight: 1.2,
 }));
 
-const CONFETTI_COLORS = ['#FF4444', '#4CAF50', '#FFD700'];
-const CONFETTI_DURATION = 3000;
+interface ChildPageProps {
+  child: Child;
+  tasks: Task[];
+  onTaskToggle: (childId: string, taskId: string) => void;
+}
 
 /**
  * ChildPage component displays a child's tasks and progress.
@@ -59,50 +40,76 @@ const CONFETTI_DURATION = 3000;
  * When all tasks are completed, it triggers a confetti animation.
  */
 const ChildPage = memo(({ child, tasks, onTaskToggle }: ChildPageProps) => {
-  const completedTasks = child.completedTasks || [];
-  const prevCompletedCountRef = useRef(completedTasks.length);
-  
+  const completedTasks = Array.isArray(child.completedTasks) ? child.completedTasks : [];
+  const totalTasks = tasks.length;
+  const completedCount = completedTasks.length;
+  const progress = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+  const prevCompletedCountRef = useRef(completedCount);
+
   const triggerConfetti = useCallback(() => {
-    const end = Date.now() + CONFETTI_DURATION;
-
-    const frame = () => {
-      // Left side confetti
-      confetti({
-        particleCount: 2,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: CONFETTI_COLORS
-      });
-
-      // Right side confetti
-      confetti({
-        particleCount: 2,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: CONFETTI_COLORS
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 1500
     };
 
-    frame();
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio)
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
   }, []);
 
   useEffect(() => {
-    // Only trigger confetti if all tasks are completed and the count just changed
-    if (completedTasks.length === tasks.length && completedTasks.length > prevCompletedCountRef.current) {
+    if (completedCount === totalTasks && completedCount > prevCompletedCountRef.current) {
+      console.log('All tasks completed! 🎉', {
+        childName: child.name,
+        completedTasks
+      });
       triggerConfetti();
     }
-    prevCompletedCountRef.current = completedTasks.length;
-  }, [completedTasks.length, tasks.length, triggerConfetti]);
+    prevCompletedCountRef.current = completedCount;
+  }, [completedCount, totalTasks, triggerConfetti, child.name, completedTasks]);
 
   const handleTaskToggle = useCallback((taskId: string) => {
+    console.log('Task toggled:', {
+      childName: child.name,
+      taskId,
+      wasCompleted: completedTasks.includes(taskId),
+      completedCount: completedCount,
+      totalTasks: totalTasks
+    });
     onTaskToggle(child.id, taskId);
-  }, [child.id, onTaskToggle]);
+  }, [child.id, child.name, completedTasks, totalTasks, onTaskToggle]);
 
   return (
     <PageContainer maxWidth="sm">
@@ -110,21 +117,13 @@ const ChildPage = memo(({ child, tasks, onTaskToggle }: ChildPageProps) => {
         {child.name}
       </ChildName>
       
-      <EmojiProgress
-        completedTasks={completedTasks}
-        totalTasks={tasks.length}
-      />
+      <EmojiProgress progress={progress} />
 
-      <TaskList role="list">
-        {tasks.map((task) => (
-          <TaskButton
-            key={task.id}
-            task={task}
-            isCompleted={completedTasks.includes(task.id)}
-            onToggle={handleTaskToggle}
-          />
-        ))}
-      </TaskList>
+      <TaskList
+        tasks={tasks}
+        completedTasks={completedTasks}
+        onTaskToggle={handleTaskToggle}
+      />
     </PageContainer>
   );
 });
