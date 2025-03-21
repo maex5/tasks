@@ -88,13 +88,12 @@ class FirebaseService {
       ...state.taskSets
     };
 
-    // Use type assertion to resolve type error
     return {
       ...state,
-      lastReset: (state as any).lastReset || null,
+      lastReset: state.lastReset || null,
       children: validatedChildren,
       taskSets
-    } as AppState;
+    };
   }
 
   public async getState(): Promise<AppState | null> {

@@ -17,15 +17,13 @@ export function useTaskReset(
         if (!currentState) return;
         
         const now = new Date();
-        // Check if lastReset exists in the state
-        const lastReset = currentState.lastReset;
-        const lastResetDate = lastReset ? new Date(lastReset) : null;
+        const lastResetDate = currentState.lastReset ? new Date(currentState.lastReset) : null;
         
         // Reset if:
         // 1. No last reset
         // 2. Last reset was on a different day
         // 3. Last reset was more than 24 hours ago
-        if (!lastReset || 
+        if (!currentState.lastReset || 
             !lastResetDate || 
             lastResetDate.getDate() !== now.getDate() ||
             now.getTime() - lastResetDate.getTime() > 24 * 60 * 60 * 1000) {
@@ -38,7 +36,7 @@ export function useTaskReset(
                 id,
                 { ...child, completedTasks: [] }
               ])
-            ) as Record<string, AppState['children'][string]>
+            )
           };
           
           await updateState(resetState);
