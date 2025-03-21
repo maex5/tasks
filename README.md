@@ -4,18 +4,20 @@ A simple task tracking app for children, built with React and Firebase.
 
 ## Features
 
-- 🌙 Daily task reset at midnight (Finnish time)
+- 🌙 Daily task reset at midnight
 - 👶 Multiple children support with individual task sets
 - 🎨 Personalized background colors for each child
-- 🔄 Real-time sync across devices
-- 📱 Progressive Web App (PWA) support
-- 🌐 Works offline
+- 🔄 Real-time sync across devices using Firebase
+- 🎯 Type-safe state management
+- ✨ Animated emoji progress indicators
 
 ## Task Sets
 
-- **Alex**: Basic daily tasks (bed, teeth, homework, etc.)
-- **Vicka**: Custom tasks including piano practice, reading, and plant care
-- **Cecci**: Creative tasks like drawing, dancing, and cooking help
+Each child has their own personalized task set:
+
+- **Alex**: Daily routine tasks (bed, teeth, homework, dog)
+- **Vicka**: Home responsibilities (room, piano, reading, plants, fish)
+- **Cecci**: Creative and care tasks (drawing, dancing, cooking, toys, cat)
 
 ## Development
 
@@ -25,9 +27,6 @@ npm install
 
 # Start development server
 npm run dev
-
-# Build for production
-npm run build
 ```
 
 ## Environment Variables
@@ -39,132 +38,73 @@ VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
 VITE_FIREBASE_DATABASE_URL=your_database_url
 VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 ## Technical Stack
 
 - React + TypeScript
 - Firebase Realtime Database
-- Material-UI
+- Material-UI (MUI)
 - Vite
-- PWA
+- Framer Motion
 
-## Recent Updates
+## Emoji Progress States
 
-- Added Firebase integration for real-time data sync
-- Implemented confetti celebration when all tasks are completed
-- Updated to Nunito font for better readability
-- Added sound effects for task completion
-- Improved UI with smooth animations
-- Added unique background colors for each child
-- Implemented automatic task reset at midnight
-
-## Emoji States
-
-The app uses different emojis to show progress:
-- 😭 (0% - no tasks completed)
-- 😢 (1-24% - just started)
-- 😐 (25-49% - getting there)
-- 🙂 (50-74% - doing well)
-- 😃 (75-99% - almost done)
-- 🤩 (100% - all tasks completed!)
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open http://localhost:5175 in your browser
-
-## Building for Production
-
-```bash
-npm run build
-```
-
-## Customizing Tasks
-
-To customize tasks for each child, edit the `defaultState` in `src/App.tsx`. The tasks are defined in the following format:
-
-```typescript
-tasks: {
-  task_id: { 
-    id: 'task_id', 
-    name: 'Task Name', 
-    emoji: '🎯' 
-  },
-  // ... more tasks
-}
-```
-
-## Data Storage
-
-The app uses localStorage to persist task completion state. To sync data across devices, you'll need to implement a backend service. Here are some options:
-
-1. Firebase Realtime Database
-2. Supabase
-3. Custom backend with MongoDB/PostgreSQL
-
-Would you like me to help you implement one of these solutions for cross-device sync?
+Task completion is shown with different emojis:
+- 😭 (0% - Not started)
+- 😢 (1-24% - Just starting)
+- 😐 (25-49% - Okay)
+- 🙂 (50-74% - Good)
+- 😃 (75-99% - Very good)
+- 🤩 (100% - All done!)
 
 ## Project Structure
 
 ```
 src/
-├── components/         # Reusable UI components
-│   ├── TaskButton.tsx # Task toggle button with animation
-│   ├── EmojiProgress.tsx # Emoji progress display
-│   └── ChildPage.tsx  # Individual child's task page
-├── types/             # TypeScript type definitions
-│   └── index.ts      # Shared types
-├── App.tsx           # Main application component
-├── main.tsx          # Application entry point
-└── index.css         # Global styles
+├── components/        # UI components
+├── config/           # Task configurations
+├── hooks/            # Custom React hooks
+├── services/         # Firebase service
+├── types/           # TypeScript types
+└── App.tsx          # Main app component
 ```
 
 ## Data Structure
 
-The app uses a JSON-based storage structure:
+The app uses Firebase Realtime Database with the following structure:
 
-```json
-{
-  "tasks": {
-    "make_bed": { "id": "make_bed", "name": "Make Bed", "emoji": "🛏️" },
-    "take_dog_out": { "id": "take_dog_out", "name": "Take Dog Out", "emoji": "🐶" },
-    "brush_teeth": { "id": "brush_teeth", "name": "Brush Teeth", "emoji": "🦷" },
-    "do_homework": { "id": "do_homework", "name": "Do Homework", "emoji": "📚" }
-  },
-  "children": {
-    "alex": { "id": "alex", "name": "Alex", "completedTasks": [] },
-    "cecci": { "id": "cecci", "name": "Cecci", "completedTasks": [] },
-    "vicka": { "id": "vicka", "name": "Vicka", "completedTasks": [] }
-  }
+```typescript
+interface AppState {
+  taskSets: {
+    [taskSetId: string]: {
+      id: string;
+      name: string;
+      tasks: {
+        [taskId: string]: {
+          id: string;
+          name: string;
+          emoji: string;
+          order: number;
+        };
+      };
+    };
+  };
+  children: {
+    [childId: string]: {
+      id: string;
+      name: string;
+      taskSetId: string;
+      completedTasks: string[];
+      backgroundColor: string;
+    };
+  };
+  lastReset: string | null;
 }
 ```
-
-## Emoji Progression
-
-| Completed Tasks | Emoji |
-|---------------|------|
-| 0% | 😭 (Crying) |
-| 25% | 😢 (Sad) |
-| 50% | 😐 (Neutral) |
-| 75% | 🙂 (Happy) |
-| 100% | 😃 (Very Happy) |
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## License
 
