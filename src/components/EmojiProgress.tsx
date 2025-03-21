@@ -32,7 +32,7 @@ function EmojiProgress({ progress }: EmojiProgressProps) {
   const playScream = useCallback(() => {
     const audio = new Audio('/tasks/scream.mp3');
     audio.volume = 1.0;
-    audio.play().catch(error => {
+    audio.play().catch(() => {
       // Silently handle any autoplay restrictions
     });
   }, []);
