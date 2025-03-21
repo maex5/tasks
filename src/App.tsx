@@ -73,6 +73,13 @@ function App() {
   const taskSetId = currentChild.taskSetId || 'all_tasks';
   const currentTaskSet = state.taskSets[taskSetId];
   
+  console.log('Current child and tasks:', {
+    childName: currentChild.name,
+    taskSetId: taskSetId,
+    availableTasks: currentTaskSet?.tasks || {},
+    taskSetName: currentTaskSet?.name || 'Unknown'
+  });
+  
   const handleTaskToggle = async (childId: string, taskId: string) => {
     if (!state || !isOnline) return;
 

@@ -60,6 +60,11 @@ class FirebaseService {
   private validateState(state: AppState | null): AppState | null {
     if (!state) return null;
 
+    console.log('Validating state:', {
+      originalChildren: state.children,
+      originalTaskSets: state.taskSets
+    });
+
     // Ensure all children have completedTasks array and taskSetId
     const validatedChildren = Object.fromEntries(
       Object.entries(state.children).map(([id, child]) => [
@@ -72,8 +77,8 @@ class FirebaseService {
       ])
     );
 
-    // Ensure taskSets exist with at least the default set
-    const taskSets = {
+    // Ensure taskSets exist with at least the default sets
+    const defaultTaskSets = {
       all_tasks: {
         id: 'all_tasks',
         name: 'All Tasks',
@@ -106,9 +111,25 @@ class FirebaseService {
           tidy_toys: { id: 'tidy_toys', name: '🧸', emoji: '🧸', order: 4 },
           feed_cat: { id: 'feed_cat', name: '🐱', emoji: '🐱', order: 5 }
         }
-      },
-      ...state.taskSets
+      }
     };
+
+    // We were merging incorrectly! The spread order was wrong
+    // Now we prioritize existing task sets over defaults
+    const taskSets = {
+      ...state.taskSets, // Existing task sets take precedence
+      ...defaultTaskSets  // Only add defaults if they don't exist
+    };
+
+    console.log('After validation:', {
+      children: validatedChildren,
+      taskSets: taskSets,
+      childrenTaskSets: Object.entries(validatedChildren).map(([id, child]) => ({
+        childId: id,
+        taskSetId: child.taskSetId,
+        availableTasks: child.taskSetId in taskSets ? taskSets[child.taskSetId as keyof typeof taskSets].tasks : {}
+      }))
+    });
 
     return {
       ...state,
